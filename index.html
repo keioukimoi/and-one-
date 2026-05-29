@@ -10,13 +10,27 @@
   <body>
     <div id="map"></div>
     <script>
-      // 地図を出すための命令をここに書く（またはindex.jsに書く）
       function initMap() {
         const center = { lat: 35.6326, lng: 139.8806 }; // 舞浜周辺
+
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 17,
           center: center,
+          
+          // 【ここを追加しました！】表示範囲をディズニー周辺に制限する設定
+          restriction: {
+            latLngBounds: {
+              north: 35.637544, // 北端のライン
+              south: 35.627657, // 南端のライン
+              east: 139.893391, // 東端のライン
+              west: 139.868139  // 西端のライン
+            },
+            strictBounds: false // 枠の外に引きずり出そうとしたら滑らかに戻す
+          },
+          minZoom: 15, // これ以上ズームアウトして地球を見えなくする制限（迷子防止）
+          maxZoom: 19  // これ以上過剰にズームインできない制限
         });
+
         new google.maps.Marker({ position: center, map: map });
       }
     </script>
