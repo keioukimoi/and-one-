@@ -20,7 +20,8 @@
       width: 100%;
     }
 
-  
+ 
+  </script>
 
   <!-- Google Maps API -->
   <script async
