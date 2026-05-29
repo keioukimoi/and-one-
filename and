@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+  <title>Disney Map</title>
+
+  <style>
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: #f5f1e8;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+  
+
+  <!-- Google Maps API -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&libraries=places&callback=initMap">
+  </script>
+
+</body>
+
+</html>
