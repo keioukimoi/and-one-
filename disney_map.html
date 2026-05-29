@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>東京ディズニーランド マップ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+            height: 100dvh;
+            overflow: hidden;
+            background: #0d0d1a;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.96);
+        }
+
+        /* ══════════════════════════════════════════
+           INTRO
+        ══════════════════════════════════════════ */
+        #screen-intro {
+            background: radial-gradient(ellipse at 50% 60%, #1e1e5a 0%, #0d0d1a 70%);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* キラキラ */
+        .sparkle-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .sp {
+            position: absolute;
+            border-radius: 50%;
+            animation: sp-rise linear infinite;
+        }
+        @keyframes sp-rise {
+            0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(0.4); opacity: 0; }
+        }
+
+        /* 星ピカ */
+        .star-burst {
+            position: absolute;
+            font-size: 18px;
+            animation: star-twinkle ease-in-out infinite;
+        }
+        @keyframes star-twinkle {
+            0%,100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+            50%      { opacity: 1; transform: scale(1.2) rotate(20deg); }
+        }
+
+        .intro-castle {
+            font-size: 88px;
+            filter: drop-shadow(0 0 18px gold);
+            animation: castle-pulse 2.2s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+        @keyframes castle-pulse {
+            from { filter: drop-shadow(0 0 8px gold);  transform: scale(1); }
+            to   { filter: drop-shadow(0 0 32px gold); transform: scale(1.06); }
+        }
+
+        .intro-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 18px;
+            text-shadow: 0 0 12px rgba(255,215,0,.7);
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+        .intro-sub {
+            font-size: 12px;
+            color: #89b4fa;
+            margin-top: 6px;
+            z-index: 1;
+        }
+        .tap-hint {
+            margin-top: 44px;
+            font-size: 14px;
+            color: rgba(255,255,255,.55);
+            animation: blink 1.6s ease-in-out infinite;
+            z-index: 1;
+        }
+        @keyframes blink {
+            0%,100% { opacity: 0.3; }
+            50%      { opacity: 1; }
+        }
+
+        /* ══════════════════════════════════════════
+           SELECT
+        ══════════════════════════════════════════ */
+        #screen-select {
+            background: linear-gradient(155deg, #0d0d1a 0%, #1a1a3e 55%, #0f3460 100%);
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+        }
+
+        .select-heading {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,.5);
+        }
+
+        .select-grid {
+            display: flex;
+            gap: 22px;
+        }
+
+        .select-card {
+            width: 148px;
+            height: 170px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            border: 2px solid transparent;
+        }
+        .select-card:active { transform: scale(0.93); }
+
+        .select-card.popcorn {
+            background: linear-gradient(145deg, rgba(255,165,0,.18), rgba(255,100,0,.08));
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255,165,0,.25), inset 0 0 20px rgba(255,165,0,.05);
+        }
+        .select-card.toilet {
+            background: linear-gradient(145deg, rgba(0,191,255,.18), rgba(0,80,200,.08));
+            border-color: #00bfff;
+            box-shadow: 0 0 20px rgba(0,191,255,.25), inset 0 0 20px rgba(0,191,255,.05);
+        }
+
+        .card-icon  { font-size: 54px; line-height: 1; }
+        .card-label { font-size: 15px; font-weight: bold; color: #fff; }
+
+        .select-top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            z-index: 1;
+        }
+        .select-action-btn {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.22);
+            color: rgba(255,255,255,.85);
+            font-size: 13px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s;
+        }
+        .select-action-btn:active { background: rgba(255,255,255,.22); }
+
+        /* ── 使い方モーダル ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.68);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-box {
+            background: #1a1a3e;
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 20px;
+            padding: 20px 22px 22px;
+            max-width: 340px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: 0 12px 40px rgba(0,0,0,.7);
+        }
+        .modal-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .modal-title { font-size: 16px; font-weight: bold; color: #ffd700; }
+        .modal-close {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #89b4fa; font-size: 16px;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+        }
+        .modal-item { margin-bottom: 16px; }
+        .modal-item:last-child { margin-bottom: 0; }
+        .modal-item-title { font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .modal-item-desc  { font-size: 12px; color: rgba(255,255,255,.58); line-height: 1.75; }
+
+        /* ══════════════════════════════════════════
+           LIST
+        ══════════════════════════════════════════ */
+        #screen-list {
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a1a3e 100%);
+        }
+
+        .list-header {
+            background: linear-gradient(135deg, #0d0d1a, #1a1a3e 60%, #0f3460);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.55);
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.18);
+            color: #89b4fa;
+            font-size: 22px;
+            line-height: 1;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .list-title  { font-size: 16px; font-weight: bold; color: #ffd700; }
+
+        .list-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 14px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .list-item {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .list-item:active { transform: scale(0.97); background: rgba(255,255,255,.1); }
+
+        .item-icon  { font-size: 30px; flex-shrink: 0; }
+        .item-name  { font-size: 15px; font-weight: bold; color: #fff; flex: 1; }
+        .item-arrow { color: rgba(255,255,255,.35); font-size: 20px; }
+
+        /* ══════════════════════════════════════════
+           MAP
+        ══════════════════════════════════════════ */
+        #screen-map { flex-direction: column; }
+
+        .map-header {
+            background: linear-gradient(135deg, #0d0d1a, #1a1a3e 60%, #0f3460);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.55);
+            flex-shrink: 0;
+        }
+        .map-name { font-size: 15px; font-weight: bold; color: #ffd700; }
+        .map-sub  { font-size: 11px; color: #89b4fa; margin-top: 2px; }
+
+        #map-wrap { flex: 1; position: relative; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
+
+        /* Leaflet */
+        .leaflet-popup-content-wrapper {
+            background: #1a1a3e;
+            color: #fff;
+            border: 1px solid #2a2a5e;
+            border-radius: 14px;
+            box-shadow: 0 6px 24px rgba(0,0,0,.6);
+        }
+        .leaflet-popup-tip { background: #1a1a3e; }
+        .leaflet-popup-close-button { color: #89b4fa !important; font-size: 18px !important; top: 8px !important; right: 10px !important; }
+        .popup-inner { text-align: center; padding: 4px 6px 2px; }
+        .popup-icon  { font-size: 28px; margin-bottom: 4px; }
+        .popup-name  { font-weight: bold; font-size: 13px; color: #ffd700; }
+
+        /* ピン */
+        .map-pin {
+            width: 38px; height: 38px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,.45);
+            border: 2.5px solid rgba(255,255,255,.55);
+        }
+        .map-pin span { transform: rotate(45deg); font-size: 18px; line-height: 1; display: block; }
+
+        /* ══════════════════════════════════════════
+           NEARBY
+        ══════════════════════════════════════════ */
+        .select-card.nearby {
+            background: linear-gradient(145deg, rgba(0,200,100,.18), rgba(0,100,50,.08));
+            border-color: #00c864;
+            box-shadow: 0 0 20px rgba(0,200,100,.25), inset 0 0 20px rgba(0,200,100,.05);
+        }
+        #screen-nearby {
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a1a3e 100%);
+        }
+        .nearby-cat-area {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 24px;
+        }
+        .nearby-cat-hint { font-size: 15px; color: rgba(255,255,255,.6); }
+        .nearby-cat-btns { display: flex; gap: 20px; }
+        .nearby-cat-btn {
+            width: 140px; height: 160px;
+            border-radius: 24px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 14px; cursor: pointer;
+            transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            border: 2px solid transparent;
+        }
+        .nearby-cat-btn:active { transform: scale(0.93); }
+        .nearby-cat-btn.toilet {
+            background: linear-gradient(145deg, rgba(0,191,255,.18), rgba(0,80,200,.08));
+            border-color: #00bfff;
+            box-shadow: 0 0 20px rgba(0,191,255,.25), inset 0 0 20px rgba(0,191,255,.05);
+        }
+        .nearby-cat-btn.popcorn {
+            background: linear-gradient(145deg, rgba(255,165,0,.18), rgba(255,100,0,.08));
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255,165,0,.25), inset 0 0 20px rgba(255,165,0,.05);
+        }
+        #nearby-tap-banner {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 1001;
+            background: rgba(255,215,0,.92);
+            color: #0d0d1a;
+            text-align: center;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        #nearby-results-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            z-index: 1001;
+            background: rgba(13,13,26,.82);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-top: 1px solid rgba(255,255,255,.12);
+            border-radius: 16px 16px 0 0;
+            padding: 10px 12px 14px;
+        }
+        .nearby-panel-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+        }
+        .nearby-panel-title { font-size: 13px; font-weight: bold; color: #ffd700; }
+        .nearby-reset-btn {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #89b4fa; font-size: 11px;
+            padding: 3px 10px; border-radius: 8px;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        #nearby-results-list { display: flex; gap: 7px; margin-top: 8px; }
+        .nearby-result-item {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+            gap: 3px; padding: 8px 4px;
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 12px; cursor: pointer;
+            transition: background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 68px; justify-content: center;
+        }
+        .nearby-result-item:active { background: rgba(255,255,255,.16); }
+        .nearby-rank { font-size: 18px; }
+        .nearby-info { width: 100%; }
+        .nearby-name {
+            font-size: 10px; font-weight: bold; color: #fff;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .nearby-dist { margin-top: 2px; font-size: 11px; color: #00c864; font-weight: bold; }
+
+        /* ══════════════════════════════════════════
+           PREDICT — 選択画面3枚目カード
+        ══════════════════════════════════════════ */
+        .select-grid { flex-wrap: wrap; justify-content: center; }
+        .select-card  { width: 118px; height: 152px; }
+        .card-icon    { font-size: 46px; }
+
+        .select-card.predict {
+            background: linear-gradient(145deg, rgba(148,0,211,.18), rgba(75,0,130,.08));
+            border-color: #bf5fff;
+            box-shadow: 0 0 20px rgba(148,0,211,.25), inset 0 0 20px rgba(148,0,211,.05);
+        }
+
+        /* ── 予測画面 ── */
+        #screen-predict {
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a1a3e 100%);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-direction: column;
+        }
+
+        .predict-header {
+            background: linear-gradient(135deg, #0d0d1a, #1a1a3e 60%, #0f3460);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.55);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* ── カレンダー ── */
+        .cal-wrap { padding: 14px 14px 6px; }
+
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .cal-title { font-size: 15px; font-weight: bold; color: #ffd700; }
+        .cal-nav-btn {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #89b4fa;
+            font-size: 20px;
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .cal-dayname {
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255,255,255,.45);
+            padding: 4px 0 6px;
+        }
+        .cal-dayname.is-sun { color: #ff8888; }
+        .cal-dayname.is-sat { color: #89b4fa; }
+
+        .cal-day {
+            text-align: center;
+            font-size: 13px;
+            padding: 8px 2px;
+            border-radius: 8px;
+            color: rgba(255,255,255,.85);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 34px;
+        }
+        .cal-day:not(.disabled):not(.empty):hover { background: rgba(255,215,0,.15); }
+        .cal-day:not(.disabled):not(.empty):active { transform: scale(0.9); }
+        .cal-day.disabled { color: rgba(255,255,255,.2); cursor: default; }
+        .cal-day.empty    { pointer-events: none; }
+        .cal-day.today    { background: rgba(137,180,250,.2); color: #89b4fa; font-weight: bold; }
+        .cal-day.selected { background: #ffd700 !important; color: #0d0d1a !important; font-weight: bold; }
+        .cal-day.is-sun:not(.disabled) { color: #ff8888; }
+        .cal-day.is-sat:not(.disabled) { color: #89b4fa; }
+        .cal-day.is-hol:not(.disabled) { color: #ffb3f0; }
+
+        /* ── ローディング ── */
+        .predict-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 32px;
+            color: #89b4fa;
+            font-size: 13px;
+        }
+        .loading-spinner {
+            width: 32px; height: 32px;
+            border: 3px solid rgba(137,180,250,.2);
+            border-top-color: #89b4fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── エラー ── */
+        .predict-error {
+            margin: 16px;
+            padding: 14px 16px;
+            background: rgba(255,80,80,.1);
+            border: 1px solid rgba(255,80,80,.25);
+            border-radius: 12px;
+            color: #ff8888;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* ── 結果エリア ── */
+        .predict-result { padding: 10px 14px 24px; }
+
+        .result-top {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: stretch;
+        }
+
+        .weather-info {
+            flex: 1;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .wi-date   { font-size: 14px; font-weight: bold; color: #ffd700; }
+        .wi-row    { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .wi-daytype { font-size: 11px; font-weight: bold; }
+        .wi-weather { font-size: 11px; color: #fff; }
+        .wi-temp   { font-size: 11px; color: #89b4fa; }
+        .wi-rain   { font-size: 11px; color: #89b4fa; }
+
+        .chart-wrap {
+            width: 52%;
+            flex-shrink: 0;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            padding: 8px;
+            height: 145px;
+        }
+
+        /* ── 予測リスト ── */
+        .pred-list-wrap {
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .pred-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            gap: 12px;
+        }
+        .pred-item:last-child { border-bottom: none; }
+        .pred-slot {
+            font-size: 13px;
+            font-weight: bold;
+            color: #89b4fa;
+            width: 42px;
+            flex-shrink: 0;
+        }
+        .pred-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 0;
+        }
+        .pred-badge {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            align-self: flex-start;
+        }
+        .badge-low    { background: rgba(80,200,120,.2);  color: #50c878; border: 1px solid rgba(80,200,120,.3); }
+        .badge-mid    { background: rgba(255,215,0,.2);   color: #ffd700; border: 1px solid rgba(255,215,0,.3); }
+        .badge-high   { background: rgba(255,140,0,.2);   color: #ff8c00; border: 1px solid rgba(255,140,0,.3); }
+        .badge-vhigh  { background: rgba(255,80,80,.2);   color: #ff5050; border: 1px solid rgba(255,80,80,.3); }
+        .badge-closed { background: rgba(100,100,100,.2); color: #888;    border: 1px solid rgba(100,100,100,.3); font-size: 11px; }
+        .badge-nodata { background: rgba(80,80,80,.15);   color: #666;    border: 1px solid rgba(80,80,80,.2);   font-size: 11px; }
+
+        .pred-bar {
+            height: 4px;
+            background: rgba(255,255,255,.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pred-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #50c878, #ffd700, #ff5050);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        /* ── ステップヒント ── */
+        .step-hint {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,.35);
+            padding: 6px 0 14px;
+        }
+
+        /* ── 日付確認バー (Step 2) ── */
+        .date-confirm-bar {
+            margin: 12px 14px 0;
+            background: rgba(255,215,0,.08);
+            border: 1px solid rgba(255,215,0,.25);
+            border-radius: 14px;
+            padding: 10px 14px;
+        }
+        .dcb-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .dcb-date {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dcb-daytype {
+            font-size: 11px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.07);
+        }
+        .dcb-change {
+            font-size: 11px;
+            color: #89b4fa;
+            background: rgba(137,180,250,.12);
+            border: 1px solid rgba(137,180,250,.3);
+            border-radius: 8px;
+            padding: 4px 10px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ── アトラクションセクション (Step 2) ── */
+        .attr-section-heading {
+            font-size: 12px;
+            color: rgba(255,255,255,.4);
+            padding: 16px 14px 8px;
+            letter-spacing: 0.5px;
+        }
+        .attr-list { padding: 0 14px 24px; display: flex; flex-direction: column; gap: 10px; }
+        .attr-item {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.12s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .attr-item:active { transform: scale(0.97); background: rgba(255,255,255,.1); }
+        .attr-emoji  { font-size: 30px; flex-shrink: 0; }
+        .attr-info   { flex: 1; min-width: 0; }
+        .attr-name   { font-size: 14px; font-weight: bold; color: #fff; }
+        .attr-area   { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 2px; }
+
+        /* ── 比較アイテム (Step 2 先頭) ── */
+        .attr-item.compare-item {
+            background: linear-gradient(145deg, rgba(68,136,255,.13), rgba(30,60,160,.06));
+            border-color: rgba(68,136,255,.4);
+        }
+
+        /* ── 比較チェックリスト (Step 4) ── */
+        .compare-check-item {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .compare-check-item.checked {
+            background: rgba(137,180,250,.1);
+            border-color: rgba(137,180,250,.4);
+        }
+        .compare-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255,255,255,.35);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+            font-weight: bold;
+            transition: background 0.15s, border-color 0.15s;
+            color: transparent;
+        }
+        .compare-check-item.checked .compare-checkbox {
+            background: #89b4fa;
+            border-color: #89b4fa;
+            color: #0d0d1a;
+        }
+
+        /* ── 比較実行ボタン ── */
+        .compare-run-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4488ff, #bf5fff);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            margin-top: 4px;
+        }
+        .compare-run-btn:active { transform: scale(0.97); opacity: 0.85; }
+        .compare-run-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+        /* ── 比較グラフエリア ── */
+        .compare-chart-wrap {
+            margin: 12px 14px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            padding: 12px;
+            height: 280px;
+        }
+
+        /* ── 結果コンテキストバー (Step 3) ── */
+        .result-context-bar {
+            margin: 10px 14px 0;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .rcb-emoji { font-size: 22px; flex-shrink: 0; }
+        .rcb-info  { flex: 1; min-width: 0; }
+        .rcb-name  { font-size: 12px; font-weight: bold; color: #ffd700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rcb-date  { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+<!-- ── Screen 1: イントロ ── -->
+<div class="screen" id="screen-intro" onclick="showSelect()">
+    <div class="sparkle-wrap" id="sparkle-wrap"></div>
+    <div class="intro-castle">🏰</div>
+    <div class="intro-title">東京ディズニーランド</div>
+    <div class="intro-sub">Interactive Map</div>
+    <div class="tap-hint">✨ タップしてはじめる ✨</div>
+</div>
+
+<!-- ── Screen 2: 選択 ── -->
+<div class="screen hidden" id="screen-select">
+    <div class="select-top-bar">
+        <button class="select-action-btn" onclick="showMapView()">🗺 マップを見る</button>
+        <button class="select-action-btn" onclick="openHowto()">？ 使い方</button>
+    </div>
+    <div class="select-heading">何を探しますか？</div>
+    <div class="select-grid">
+        <div class="select-card popcorn" onclick="showList('popcorn')">
+            <span class="card-icon">🍿</span>
+            <span class="card-label">ポップコーン</span>
+        </div>
+        <div class="select-card toilet" onclick="showList('toilet')">
+            <span class="card-icon">🚻</span>
+            <span class="card-label">トイレ</span>
+        </div>
+        <div class="select-card predict" onclick="showPredict()">
+            <span class="card-icon">⏱</span>
+            <span class="card-label">待ち時間予測</span>
+        </div>
+        <div class="select-card nearby" onclick="showNearby()">
+            <span class="card-icon">📍</span>
+            <span class="card-label">近くの施設</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Screen 3: リスト ── -->
+<div class="screen hidden" id="screen-list">
+    <div class="list-header">
+        <button class="back-btn" onclick="showSelect()">‹</button>
+        <div class="list-title" id="list-title"></div>
+    </div>
+    <div class="list-items" id="list-items"></div>
+</div>
+
+<!-- ── Screen: 近くの施設を探す ── -->
+<div class="screen hidden" id="screen-nearby">
+    <div class="list-header">
+        <button class="back-btn" onclick="showSelect()">‹</button>
+        <div class="list-title">📍 近くの施設を探す</div>
+    </div>
+    <div class="nearby-cat-area">
+        <div class="nearby-cat-hint">何を探しますか？</div>
+        <div class="nearby-cat-btns">
+            <div class="nearby-cat-btn toilet" onclick="startNearbyMap('toilet')">
+                <span class="card-icon">🚻</span>
+                <span class="card-label">トイレを探す</span>
+            </div>
+            <div class="nearby-cat-btn popcorn" onclick="startNearbyMap('popcorn')">
+                <span class="card-icon">🍿</span>
+                <span class="card-label">ポップコーンを探す</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Screen 5: 待ち時間予測 ── -->
+<div class="screen hidden" id="screen-predict">
+    <div class="predict-header">
+        <button class="back-btn" onclick="backFromPredict()">‹</button>
+        <div class="list-title" id="predict-header-title">⏱ 待ち時間予測</div>
+    </div>
+
+    <!-- Step 1: カレンダー -->
+    <div id="step-calendar">
+        <div class="cal-wrap">
+            <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="moveCalMonth(-1)">‹</button>
+                <div class="cal-title" id="cal-title"></div>
+                <button class="cal-nav-btn" onclick="moveCalMonth(1)">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <div class="step-hint">日付を選択してください</div>
+    </div>
+
+    <!-- Step 2: アトラクション選択 -->
+    <div id="step-attraction" style="display:none">
+        <div class="date-confirm-bar" id="date-confirm-bar"></div>
+        <div class="attr-section-heading">アトラクションを選んでください</div>
+        <div class="attr-list" id="attr-list"></div>
+    </div>
+
+    <!-- Step 3: 結果 -->
+    <div id="step-result" style="display:none">
+        <div class="result-context-bar" id="result-context-bar"></div>
+        <div class="predict-loading" id="predict-loading" style="display:none">
+            <div class="loading-spinner"></div>
+            <div>気象データを取得中...</div>
+        </div>
+        <div class="predict-error" id="predict-error" style="display:none"></div>
+        <div class="predict-result" id="predict-result" style="display:none">
+            <div class="result-top">
+                <div class="weather-info" id="weather-info"></div>
+                <div class="chart-wrap">
+                    <canvas id="wait-chart"></canvas>
+                </div>
+            </div>
+            <div class="pred-list-wrap" id="predict-list"></div>
+        </div>
+    </div>
+
+    <!-- Step 4: 比較アトラクション選択 -->
+    <div id="step-compare" style="display:none">
+        <div class="date-confirm-bar" id="compare-date-bar"></div>
+        <div class="attr-section-heading">比較するアトラクションを選んでください</div>
+        <div class="attr-list" id="compare-check-list"></div>
+        <div style="padding: 0 14px 24px">
+            <button class="compare-run-btn" id="compare-run-btn" onclick="runComparison()">📊 比較する</button>
+        </div>
+    </div>
+
+    <!-- Step 5: 比較結果 -->
+    <div id="step-compare-result" style="display:none">
+        <div class="date-confirm-bar" id="compare-result-date-bar"></div>
+        <div class="predict-loading" id="compare-loading" style="display:none">
+            <div class="loading-spinner"></div>
+            <div>気象データを取得中...</div>
+        </div>
+        <div class="predict-error" id="compare-error" style="display:none"></div>
+        <div id="compare-result-content" style="display:none">
+            <div class="compare-chart-wrap">
+                <canvas id="compare-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Screen 4: マップ ── -->
+<div class="screen hidden" id="screen-map">
+    <div class="map-header">
+        <button class="back-btn" onclick="mapBackBtn()">‹</button>
+        <div>
+            <div class="map-name" id="map-name"></div>
+            <div class="map-sub" id="map-sub">マップで場所を確認</div>
+        </div>
+    </div>
+    <div id="map-wrap">
+        <div id="map"></div>
+        <div id="nearby-tap-banner" style="display:none">📍 地図をタップして現在地を指定してください</div>
+        <div id="nearby-results-panel" style="display:none">
+            <div class="nearby-panel-header">
+                <span class="nearby-panel-title" id="nearby-panel-title">近くの施設</span>
+                <button class="nearby-reset-btn" onclick="resetNearbyLocation()">🔄 やり直す</button>
+            </div>
+            <div id="nearby-results-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 使い方モーダル ── -->
+<div class="modal-overlay hidden" id="modal-howto" onclick="closeHowto(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-title">📖 使い方</span>
+            <button class="modal-close" onclick="closeHowto()">✕</button>
+        </div>
+        <div class="modal-item">
+            <div class="modal-item-title">🚻 トイレを探す</div>
+            <div class="modal-item-desc">パーク内のトイレの場所をマップ上に表示します。タップすると詳細が確認できます。</div>
+        </div>
+        <div class="modal-item">
+            <div class="modal-item-title">🍿 ポップコーンを探す</div>
+            <div class="modal-item-desc">パーク内のポップコーン販売場所と味をマップ上に表示します。</div>
+        </div>
+        <div class="modal-item">
+            <div class="modal-item-title">🎢 待ち時間予測</div>
+            <div class="modal-item-desc">日付を選択してアトラクションの待ち時間予測を確認できます。気象データをもとに時間帯別の待ち時間を予測します。</div>
+        </div>
+        <div class="modal-item">
+            <div class="modal-item-title">📍 近くの施設を探す</div>
+            <div class="modal-item-desc">地図上をタップして現在地を指定すると、近くのトイレまたはポップコーン販売場所を距離順に3つ表示します。</div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ─── データ ─────────────────────────────────────────── */
+const DATA = {
+    popcorn: [
+        { name: 'しょうゆバター味',     lat: 35.6338108019477,   lng: 139.88056946100153 },
+        { name: 'キャラメル味',          lat: 35.631484512194405, lng: 139.8786118876311  },
+        { name: '塩味',                  lat: 35.63226241087617,  lng: 139.87868158205404 },
+        { name: 'ハニー味',              lat: 35.631248196980984, lng: 139.87974443746873 },
+        { name: 'ポップコーン専門店',    lat: 35.63151166818746,  lng: 139.87945807691634 },
+        { name: 'コンポタ味',            lat: 35.63099732244331,  lng: 139.88087439259698 },
+        { name: 'ブラックペッパー味',    lat: 35.631954898812246, lng: 139.88256668987793 },
+        { name: 'キャラメル味②',        lat: 35.633563095725094, lng: 139.8794883027647  },
+        { name: 'ミルクチョコレート味',  lat: 35.63005416417772,  lng: 139.87971737631196 },
+        { name: 'ハニー味②',            lat: 35.630286049168404, lng: 139.87986146318096 },
+        { name: 'カレー味',              lat: 35.63287651752296,  lng: 139.8819705823898  },
+    ],
+    toilet: [
+        { name: 'トイレ（トゥモローランド・スタージェット前）',        lat: 35.63368011332947,  lng: 139.87889997670104 },
+        { name: 'トイレ（ベイマックスのハッピーライド前）',            lat: 35.63239391006974,  lng: 139.87888364644343 },
+        { name: 'トイレ（美女と野獣エリア入口前）',                    lat: 35.6314613997614,   lng: 139.87882029079813 },
+        { name: 'トイレ（パーク南端・ジャングルクルーズ方面）',        lat: 35.629765685768795, lng: 139.88007305303117  },
+        { name: 'トイレ（イッツ・ア・スモールワールド前）',            lat: 35.630928800754056, lng: 139.88030256353176  },
+        { name: 'トイレ（スプラッシュ・マウンテン下）',                lat: 35.63035420859266,  lng: 139.88349412694708  },
+        { name: 'トイレ（カヌー探険乗り場手前）',                      lat: 35.631583089277406, lng: 139.8836004347372   },
+        { name: 'トイレ（カヌー探険乗り場奥）',                        lat: 35.63171852323976,  lng: 139.8847613486772   },
+        { name: 'トイレ（ビッグサンダー・マウンテン下）',              lat: 35.63257049174343,  lng: 139.88335266495415  },
+        { name: 'トイレ（センタープラザ・スプラッシュ方面）',          lat: 35.63274816303381,  lng: 139.88130232241477  },
+        { name: 'トイレ（ジャングルクルーズ前）',                      lat: 35.63390165430816,  lng: 139.88214109093343  },
+        { name: 'トイレ（カリブの海賊前）',                            lat: 35.63387167954913,  lng: 139.88162543624406  },
+        { name: 'トイレ（ビッグサンダー・マウンテン奥）',              lat: 35.63209627175254,  lng: 139.88397503989827  },
+        { name: 'トイレ（トゥモローランド・ファンタジーランド境界）',  lat: 35.63210443659148,  lng: 139.8821856373807   },
+        { name: 'トイレ（アリスのティーパーティー付近）',              lat: 35.631054676741726, lng: 139.8813122778588   },
+        { name: 'トイレ（カリブ〜ウエスタン中間）',                    lat: 35.63434647023537,  lng: 139.8814895958364   },
+        { name: 'トイレ（カリブの海賊手前・救護室横）',                lat: 35.63464873431085,  lng: 139.88041880479372  },
+        { name: 'トイレ（ワールドバザール右奥）',                      lat: 35.63445255388876,  lng: 139.8788793297422   },
+        { name: 'トイレ（ワールドバザール左奥）',                      lat: 35.63487154954155,  lng: 139.87997139277076  },
+    ],
+    chicken: [
+        { name: 'テリヤキチキンレッグ',  lat: 35.63355563854234,  lng: 139.88219916220535 },
+        { name: 'スモークターキーレッグ', lat: 35.632115797333114, lng: 139.8842140953605  },
+    ],
+};
+
+const CAT_CFG = {
+    popcorn: { label: '🍿 ポップコーン', emoji: '🍿', color: '#ffa500' },
+    toilet:  { label: '🚻 トイレ',       emoji: '🚻', color: '#00bfff' },
+    chicken: { label: '🍗 チキン',        emoji: '🍗', color: '#e8621b' },
+};
+
+/* ─── Leaflet 初期化 ────────────────────────────────── */
+const map = L.map('map', {
+    center: [35.6329, 139.8804],
+    zoom: 16,
+    minZoom: 15,
+    maxZoom: 19,
+    zoomSnap: 0.5,
+    zoomDelta: 0.5,
+    maxBounds: [[35.628, 139.876], [35.638, 139.887]],
+    maxBoundsViscosity: 1.0,
+});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+}).addTo(map);
+
+let currentCat = 'popcorn';
+const allMarkers = [];
+
+/* ─── キラキラ生成 ──────────────────────────────────── */
+(function () {
+    const wrap = document.getElementById('sparkle-wrap');
+    const colors = ['#ffd700', '#fff', '#89b4fa', '#ffb3f0', '#a0f0a0'];
+    const stars  = ['✦', '✧', '★', '✶', '✸'];
+
+    for (let i = 0; i < 45; i++) {
+        // 丸いパーティクル
+        const p = document.createElement('div');
+        p.className = 'sp';
+        const size = 2 + Math.random() * 5;
+        p.style.cssText = `
+            left:${Math.random()*100}%;
+            width:${size}px; height:${size}px;
+            background:${colors[i % colors.length]};
+            animation-duration:${3 + Math.random()*5}s;
+            animation-delay:${Math.random()*6}s;
+            opacity:0;
+        `;
+        wrap.appendChild(p);
+    }
+    for (let i = 0; i < 18; i++) {
+        // 星形テキスト
+        const s = document.createElement('div');
+        s.className = 'star-burst';
+        s.textContent = stars[i % stars.length];
+        s.style.cssText = `
+            left:${5 + Math.random()*90}%;
+            top:${5 + Math.random()*90}%;
+            color:${colors[i % colors.length]};
+            animation-duration:${1.5 + Math.random()*2.5}s;
+            animation-delay:${Math.random()*3}s;
+            opacity:0;
+        `;
+        wrap.appendChild(s);
+    }
+})();
+
+/* ─── 画面切り替え ──────────────────────────────────── */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    if (id === 'screen-map') setTimeout(() => map.invalidateSize(), 80);
+}
+
+function showSelect() { showScreen('screen-select'); }
+
+function showList(cat) {
+    currentCat = cat;
+    const cfg  = CAT_CFG[cat];
+    const items = DATA[cat];
+
+    document.getElementById('list-title').textContent = cfg.label;
+
+    const container = document.getElementById('list-items');
+    container.innerHTML = '';
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+            <span class="item-icon">${cfg.emoji}</span>
+            <span class="item-name">${item.name}</span>
+            <span class="item-arrow">›</span>
+        `;
+        div.onclick = () => showMap(item);
+        container.appendChild(div);
+    });
+
+    showScreen('screen-list');
+}
+
+function initAllMarkers() {
+    if (allMarkers.length > 0) return;
+    Object.entries(DATA).forEach(([cat, items]) => {
+        const { emoji, color } = CAT_CFG[cat];
+        items.forEach(item => {
+            const icon = L.divIcon({
+                html: `<div class="map-pin" style="background:${color};">
+                           <span>${emoji}</span>
+                       </div>`,
+                className: '',
+                iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -42],
+            });
+            const marker = L.marker([item.lat, item.lng], { icon })
+                .bindPopup(`<div class="popup-inner">
+                                <div class="popup-icon">${emoji}</div>
+                                <div class="popup-name">${item.name}</div>
+                            </div>`, { maxWidth: 200 })
+                .addTo(map);
+            allMarkers.push({ marker, item, cat });
+        });
+    });
+}
+
+function showMap(item) {
+    document.getElementById('map-name').textContent = item.name;
+    showScreen('screen-map');
+    initAllMarkers();
+
+    map.setView([item.lat, item.lng], 19, { animate: true, duration: 1.2 });
+    const found = allMarkers.find(m => m.item.lat === item.lat && m.item.lng === item.lng);
+    if (found) setTimeout(() => found.marker.openPopup(), 1300);
+}
+
+function backToList() { showList(currentCat); }
+
+function mapBackBtn() {
+    if (nearbyState === 'waiting' || nearbyState === 'results') {
+        exitNearbyMode();
+    } else if (mapViewMode) {
+        mapViewMode = false;
+        clearAreaLabels();
+        showAllMarkers();
+        document.getElementById('map-sub').textContent = 'マップで場所を確認';
+        showSelect();
+    } else {
+        backToList();
+    }
+}
+
+/* ─── 近くの施設を探す ────────────────────────────────── */
+let nearbyState      = 'idle'; // 'idle' | 'waiting' | 'results'
+let nearbyCategory   = null;
+let nearbyUserMarker = null;
+const nearbyHighlighted = []; // { marker, origIcon }
+
+map.on('click', function(e) { if (nearbyState === 'waiting') onNearbyMapClick(e); });
+
+function calcDistance(lat1, lng1, lat2, lng2) {
+    const R    = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a    = Math.sin(dLat/2)**2 +
+                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2)**2;
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function makeNormalIcon(emoji, color) {
+    return L.divIcon({
+        html: `<div class="map-pin" style="background:${color};"><span>${emoji}</span></div>`,
+        className: '',
+        iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -42],
+    });
+}
+
+function makeHighlightIcon(emoji, color) {
+    return L.divIcon({
+        html: `<div class="map-pin" style="background:${color};width:50px;height:50px;border:3px solid #fff;box-shadow:0 0 14px ${color},0 0 28px ${color}88;">
+                   <span style="font-size:22px;">${emoji}</span>
+               </div>`,
+        className: '',
+        iconSize: [50, 50], iconAnchor: [25, 50], popupAnchor: [0, -54],
+    });
+}
+
+function hideAllMarkers() {
+    allMarkers.forEach(({ marker }) => marker.setOpacity(0));
+}
+function showAllMarkers() {
+    allMarkers.forEach(({ marker }) => marker.setOpacity(1));
+}
+
+function showNearby() {
+    showScreen('screen-nearby');
+}
+
+function startNearbyMap(cat) {
+    nearbyCategory = cat;
+    nearbyState    = 'waiting';
+
+    const name = CAT_CFG[cat].label.replace(/^\S+\s/, '');
+    document.getElementById('map-name').textContent = `近くの${name}を探す`;
+    document.getElementById('map-sub').textContent  = '地図をタップして現在地を指定';
+    showScreen('screen-map');
+    initAllMarkers();
+
+    clearNearbyHighlights();
+    if (nearbyUserMarker) { map.removeLayer(nearbyUserMarker); nearbyUserMarker = null; }
+    hideAllMarkers();
+
+    document.getElementById('nearby-tap-banner').style.display    = 'block';
+    document.getElementById('nearby-results-panel').style.display = 'none';
+
+    map.setView([35.6329, 139.8804], 17, { animate: false });
+}
+
+function onNearbyMapClick(e) {
+    nearbyState = 'results';
+    const { lat, lng } = e.latlng;
+
+    if (nearbyUserMarker) map.removeLayer(nearbyUserMarker);
+    nearbyUserMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+            html: '<div style="font-size:32px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));">📍</div>',
+            className: '', iconSize: [32, 40], iconAnchor: [16, 40],
+        }),
+    }).addTo(map);
+
+    document.getElementById('nearby-tap-banner').style.display = 'none';
+
+    const catItems  = allMarkers.filter(m => m.cat === nearbyCategory);
+    const withDist  = catItems.map(m => ({ ...m, dist: calcDistance(lat, lng, m.item.lat, m.item.lng) }));
+    withDist.sort((a, b) => a.dist - b.dist);
+    const top3 = withDist.slice(0, 3);
+
+    clearNearbyHighlights();
+    const { emoji, color } = CAT_CFG[nearbyCategory];
+    top3.forEach(entry => {
+        const origIcon = makeNormalIcon(emoji, color);
+        entry.marker.setIcon(makeHighlightIcon(emoji, color));
+        entry.marker.setOpacity(1);
+        nearbyHighlighted.push({ marker: entry.marker, origIcon });
+    });
+
+    const name = CAT_CFG[nearbyCategory].label.replace(/^\S+\s/, '');
+    document.getElementById('nearby-panel-title').textContent = `近くの${name} TOP 3`;
+
+    const ranks = ['🥇', '🥈', '🥉'];
+    const list  = document.getElementById('nearby-results-list');
+    list.innerHTML = '';
+    top3.forEach(({ item, dist }, i) => {
+        const el = document.createElement('div');
+        el.className = 'nearby-result-item';
+        el.innerHTML = `
+            <span class="nearby-rank">${ranks[i]}</span>
+            <div class="nearby-info">
+                <div class="nearby-name">${item.name}</div>
+                <div class="nearby-dist">📏 ${dist < 1000 ? dist + 'm' : (dist/1000).toFixed(1) + 'km'}</div>
+            </div>`;
+        el.onclick = () => {
+            map.setView([item.lat, item.lng], 19, { animate: true, duration: 1.0 });
+            const found = allMarkers.find(m => m.item.lat === item.lat && m.item.lng === item.lng);
+            if (found) setTimeout(() => found.marker.openPopup(), 1100);
+        };
+        list.appendChild(el);
+    });
+    document.getElementById('nearby-results-panel').style.display = 'block';
+}
+
+function clearNearbyHighlights() {
+    nearbyHighlighted.forEach(({ marker, origIcon }) => marker.setIcon(origIcon));
+    nearbyHighlighted.length = 0;
+}
+
+function resetNearbyLocation() {
+    clearNearbyHighlights();
+    if (nearbyUserMarker) { map.removeLayer(nearbyUserMarker); nearbyUserMarker = null; }
+    hideAllMarkers();
+    nearbyState = 'waiting';
+    document.getElementById('nearby-results-panel').style.display = 'none';
+    document.getElementById('nearby-tap-banner').style.display    = 'block';
+}
+
+function exitNearbyMode() {
+    nearbyState = 'idle';
+    clearNearbyHighlights();
+    showAllMarkers();
+    if (nearbyUserMarker) { map.removeLayer(nearbyUserMarker); nearbyUserMarker = null; }
+    document.getElementById('nearby-tap-banner').style.display    = 'none';
+    document.getElementById('nearby-results-panel').style.display = 'none';
+    document.getElementById('map-sub').textContent = 'マップで場所を確認';
+    showScreen('screen-nearby');
+}
+
+/* ─── マップを見る ──────────────────────────────────── */
+let mapViewMode = false;
+
+function showMapView() {
+    mapViewMode = true;
+    document.getElementById('map-name').textContent = 'パークマップ';
+    document.getElementById('map-sub').textContent  = 'ピンをタップで詳細表示';
+    showScreen('screen-map');
+    initAllMarkers();
+    initAreaLabels();
+    map.setView([35.6329, 139.8804], 16, { animate: true, duration: 0.8 });
+    setTimeout(updateMapZoomDisplay, 850);
+}
+
+/* ─── エリアラベル（ズーム15〜16用）────────────────── */
+const AREA_LABELS = [
+    { name: 'ワールドバザール',     lat: 35.6348, lng: 139.8794 },
+    { name: 'アドベンチャーランド', lat: 35.6343, lng: 139.8820 },
+    { name: 'ウエスタンランド',     lat: 35.6328, lng: 139.8845 },
+    { name: 'クリッターカントリー', lat: 35.6300, lng: 139.8838 },
+    { name: 'ファンタジーランド',   lat: 35.6310, lng: 139.8800 },
+    { name: 'トゥーンタウン',       lat: 35.6322, lng: 139.8775 },
+    { name: 'トゥモローランド',     lat: 35.6335, lng: 139.8784 },
+];
+
+const areaLabelMarkers = [];
+
+function initAreaLabels() {
+    if (areaLabelMarkers.length > 0) return;
+    AREA_LABELS.forEach(area => {
+        const icon = L.divIcon({
+            html: `<div style="
+                font-family:'Hiragino Sans','Meiryo',sans-serif;
+                font-size:15px;font-weight:bold;
+                color:#fff;
+                text-shadow:0 1px 4px rgba(0,0,0,1),0 0 12px rgba(0,0,0,.9),0 0 4px rgba(0,0,0,1);
+                white-space:nowrap;pointer-events:none;
+                transform:translate(-50%,-50%);
+                letter-spacing:1px;
+            ">${area.name}</div>`,
+            className: '',
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+        });
+        const marker = L.marker([area.lat, area.lng], { icon, interactive: false, keyboard: false });
+        areaLabelMarkers.push(marker);
+    });
+}
+
+function clearAreaLabels() {
+    areaLabelMarkers.forEach(m => { if (map.hasLayer(m)) map.removeLayer(m); });
+}
+
+function updateMapZoomDisplay() {
+    if (!mapViewMode) return;
+    const zoom = map.getZoom();
+    if (zoom < 16.5) {
+        allMarkers.forEach(({ marker }) => marker.setOpacity(0));
+        areaLabelMarkers.forEach(m => { if (!map.hasLayer(m)) m.addTo(map); });
+    } else {
+        clearAreaLabels();
+        allMarkers.forEach(({ marker }) => marker.setOpacity(1));
+    }
+}
+
+map.on('zoomend', updateMapZoomDisplay);
+
+/* ─── 使い方モーダル ────────────────────────────────── */
+function openHowto() {
+    document.getElementById('modal-howto').classList.remove('hidden');
+}
+function closeHowto(e) {
+    if (!e || e.target === document.getElementById('modal-howto')) {
+        document.getElementById('modal-howto').classList.add('hidden');
+    }
+}
+
+/* ─── 待ち時間予測 ─────────────────────────────────── */
+
+// 日本の祝日 (YYYY-MM-DD)
+const JP_HOLIDAYS = new Set([
+    '2025-01-01','2025-01-13','2025-02-11','2025-02-23','2025-02-24',
+    '2025-03-20','2025-04-29','2025-05-03','2025-05-04','2025-05-05',
+    '2025-05-06','2025-07-21','2025-08-11','2025-09-15','2025-09-23',
+    '2025-10-13','2025-11-03','2025-11-24',
+    '2026-01-01','2026-01-12','2026-02-11','2026-02-23',
+    '2026-03-20','2026-04-29','2026-05-03','2026-05-04','2026-05-05',
+    '2026-07-20','2026-08-11','2026-09-21','2026-09-23',
+    '2026-10-12','2026-11-03','2026-11-23',
+    '2027-01-01','2027-01-11','2027-02-11','2027-02-23',
+    '2027-03-21','2027-04-29','2027-05-03','2027-05-04','2027-05-05',
+]);
+
+// ── アトラクション定義（将来追加はここに追記するだけ）──
+const ATTRACTIONS = [
+    {
+        id: 'beauty_beast',
+        name: '美女と野獣 魔法のものがたり',
+        emoji: '🌹',
+        area: 'ファンタジーランド',
+        getModel: () => WAIT_MODEL_INLINE,
+    },
+    {
+        id: 'splash_mountain',
+        name: 'スプラッシュマウンテン',
+        emoji: '💦',
+        area: 'クリッターカントリー',
+        getModel: () => WAIT_MODEL_SPLASH_INLINE,
+    },
+];
+
+// ── アトラクションカラーパレット（インデックス順に自動割り当て）──
+const ATTRACTION_COLORS = [
+    { border: '#4488ff', bg: 'rgba(68,136,255,0.15)',  point: '#4488ff' },  // 青系（美女と野獣）
+    { border: '#ff8c00', bg: 'rgba(255,140,0,0.15)',   point: '#ff8c00' },  // オレンジ系（スプラッシュ）
+    { border: '#00cc88', bg: 'rgba(0,204,136,0.15)',   point: '#00cc88' },
+    { border: '#ff44aa', bg: 'rgba(255,68,170,0.15)',  point: '#ff44aa' },
+    { border: '#aa44ff', bg: 'rgba(170,68,255,0.15)',  point: '#aa44ff' },
+    { border: '#ffcc00', bg: 'rgba(255,204,0,0.15)',   point: '#ffcc00' },
+];
+
+let waitModel       = null;
+let weatherCache    = null;
+let predChart       = null;
+let compareChart    = null;
+let calYear, calMonth;
+let selectedDate              = null;  // Step1 → Step2 へ引き継ぐ日付
+let selectedAttraction        = null;  // Step2 → Step3 へ引き継ぐアトラクション
+let selectedCompareAttrIds    = [];    // Step4: 比較選択中のアトラクションID
+let predictStep               = 1;    // 現在のステップ (1=カレンダー / 2=選択 / 3=結果 / 4=比較選択 / 5=比較結果)
+
+function toISODate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getDayType(d) {
+    if (JP_HOLIDAYS.has(toISODate(d))) return '祝日';
+    const dow = d.getDay();
+    if (dow === 6) return '土曜';
+    if (dow === 0) return '日曜';
+    return '平日';
+}
+
+function wmoToWeather(code) {
+    if (code <= 1)  return '晴';
+    if (code <= 48) return '曇';
+    return '雨';
+}
+
+// 重回帰モデルデータ 美女と野獣 (2025/5/26〜2025/6/30, 36日間)
+const WAIT_MODEL_INLINE = {"time_slots":["9:15","9:45","10:15","10:45","11:15","11:45","12:15","12:45","13:15","13:45","14:15","14:45","15:15","15:45","16:15","16:45","17:15","17:45","18:15","18:45","19:15","19:45"],"models":{"9:15":{"status":"ok","intercept":98.9775,"saturday":27.5073,"sunday":7.8072,"holiday":0.0,"cloudy":19.813,"rainy":5.2871,"max_temp":-1.2525,"min_temp":-0.4062,"precipitation":-0.5901,"r2":0.4424,"n_samples":34,"has_holiday_data":false},"9:45":{"status":"ok","intercept":182.3498,"saturday":22.7104,"sunday":5.7321,"holiday":0.0,"cloudy":12.1107,"rainy":2.705,"max_temp":-3.3065,"min_temp":0.7166,"precipitation":-1.5989,"r2":0.4066,"n_samples":35,"has_holiday_data":false},"10:15":{"status":"ok","intercept":105.6809,"saturday":20.4644,"sunday":20.0928,"holiday":0.0,"cloudy":38.9885,"rainy":7.6872,"max_temp":1.217,"min_temp":-2.9432,"precipitation":-1.0036,"r2":0.6007,"n_samples":35,"has_holiday_data":false},"10:45":{"status":"ok","intercept":147.8812,"saturday":23.3218,"sunday":10.1729,"holiday":0.0,"cloudy":6.6796,"rainy":-8.7751,"max_temp":-0.9917,"min_temp":-1.9891,"precipitation":-1.0701,"r2":0.496,"n_samples":35,"has_holiday_data":false},"11:15":{"status":"ok","intercept":133.5263,"saturday":20.9105,"sunday":5.2162,"holiday":0.0,"cloudy":13.7344,"rainy":-4.6594,"max_temp":0.9327,"min_temp":-3.9619,"precipitation":-0.5174,"r2":0.5848,"n_samples":36,"has_holiday_data":false},"11:45":{"status":"ok","intercept":123.2024,"saturday":19.5131,"sunday":-1.9661,"holiday":0.0,"cloudy":16.3384,"rainy":5.0063,"max_temp":0.1916,"min_temp":-2.9526,"precipitation":-0.706,"r2":0.6156,"n_samples":36,"has_holiday_data":false},"12:15":{"status":"ok","intercept":90.3257,"saturday":20.6816,"sunday":16.4693,"holiday":0.0,"cloudy":10.0849,"rainy":1.0149,"max_temp":0.6282,"min_temp":-2.1371,"precipitation":-0.5194,"r2":0.5388,"n_samples":36,"has_holiday_data":false},"12:45":{"status":"ok","intercept":120.3266,"saturday":13.1172,"sunday":2.3159,"holiday":0.0,"cloudy":-3.2457,"rainy":-10.8695,"max_temp":-1.2211,"min_temp":-0.719,"precipitation":-0.9967,"r2":0.4324,"n_samples":36,"has_holiday_data":false},"13:15":{"status":"ok","intercept":179.1595,"saturday":18.3801,"sunday":8.8791,"holiday":0.0,"cloudy":-3.0812,"rainy":-14.0972,"max_temp":-3.0753,"min_temp":-0.7373,"precipitation":-1.4624,"r2":0.7464,"n_samples":35,"has_holiday_data":false},"13:45":{"status":"ok","intercept":155.2472,"saturday":33.8256,"sunday":11.2973,"holiday":0.0,"cloudy":8.6787,"rainy":-5.0988,"max_temp":-1.2344,"min_temp":-2.6168,"precipitation":-1.022,"r2":0.7327,"n_samples":35,"has_holiday_data":false},"14:15":{"status":"ok","intercept":133.9619,"saturday":18.5637,"sunday":9.2978,"holiday":0.0,"cloudy":2.6612,"rainy":-11.1197,"max_temp":0.1953,"min_temp":-2.9899,"precipitation":-0.7701,"r2":0.6766,"n_samples":35,"has_holiday_data":false},"14:45":{"status":"ok","intercept":93.5058,"saturday":28.6603,"sunday":21.047,"holiday":0.0,"cloudy":14.6126,"rainy":11.0114,"max_temp":-1.0515,"min_temp":-0.2296,"precipitation":-1.316,"r2":0.6885,"n_samples":35,"has_holiday_data":false},"15:15":{"status":"ok","intercept":126.9323,"saturday":29.1431,"sunday":6.9033,"holiday":0.0,"cloudy":4.3561,"rainy":-1.5546,"max_temp":-2.0282,"min_temp":-0.343,"precipitation":-1.0108,"r2":0.5934,"n_samples":36,"has_holiday_data":false},"15:45":{"status":"ok","intercept":150.717,"saturday":33.4287,"sunday":9.5346,"holiday":0.0,"cloudy":10.9658,"rainy":3.4434,"max_temp":-4.3862,"min_temp":1.3837,"precipitation":-1.9781,"r2":0.6242,"n_samples":36,"has_holiday_data":false},"16:15":{"status":"ok","intercept":168.0413,"saturday":22.8142,"sunday":10.6459,"holiday":0.0,"cloudy":17.4009,"rainy":6.7318,"max_temp":-5.0868,"min_temp":1.3728,"precipitation":-1.9665,"r2":0.6843,"n_samples":35,"has_holiday_data":false},"16:45":{"status":"ok","intercept":176.0922,"saturday":19.8719,"sunday":14.1141,"holiday":0.0,"cloudy":8.6199,"rainy":-8.7918,"max_temp":-3.685,"min_temp":-0.4271,"precipitation":-1.5175,"r2":0.6532,"n_samples":35,"has_holiday_data":false},"17:15":{"status":"ok","intercept":112.3331,"saturday":49.4465,"sunday":20.9997,"holiday":0.0,"cloudy":29.945,"rainy":7.869,"max_temp":0.6017,"min_temp":-4.1061,"precipitation":-1.4051,"r2":0.8483,"n_samples":36,"has_holiday_data":false},"17:45":{"status":"ok","intercept":131.1132,"saturday":40.4172,"sunday":9.4908,"holiday":0.0,"cloudy":6.6423,"rainy":-7.782,"max_temp":-2.8175,"min_temp":0.3258,"precipitation":-1.2633,"r2":0.6569,"n_samples":36,"has_holiday_data":false},"18:15":{"status":"ok","intercept":106.5085,"saturday":27.3995,"sunday":9.4186,"holiday":0.0,"cloudy":13.3017,"rainy":2.6011,"max_temp":-1.5568,"min_temp":-0.3185,"precipitation":-1.4446,"r2":0.6744,"n_samples":36,"has_holiday_data":false},"18:45":{"status":"ok","intercept":98.3152,"saturday":33.959,"sunday":6.1386,"holiday":0.0,"cloudy":13.9291,"rainy":2.8263,"max_temp":0.0299,"min_temp":-2.527,"precipitation":-1.2037,"r2":0.7082,"n_samples":36,"has_holiday_data":false},"19:15":{"status":"ok","intercept":101.9867,"saturday":27.0847,"sunday":4.1559,"holiday":0.0,"cloudy":13.6839,"rainy":-1.3218,"max_temp":-1.6246,"min_temp":-0.6742,"precipitation":-1.0347,"r2":0.7077,"n_samples":36,"has_holiday_data":false},"19:45":{"status":"ok","intercept":83.8897,"saturday":30.1577,"sunday":3.854,"holiday":0.0,"cloudy":4.2843,"rainy":-3.6437,"max_temp":-0.8404,"min_temp":-1.0625,"precipitation":-0.8233,"r2":0.7398,"n_samples":36,"has_holiday_data":false}}};
+
+// 重回帰モデルデータ スプラッシュマウンテン (2025/5/26〜2025/6/30, 36日間)
+const WAIT_MODEL_SPLASH_INLINE = {"time_slots":["9:15","9:45","10:15","10:45","11:15","11:45","12:15","12:45","13:15","13:45","14:15","14:45","15:15","15:45","16:15","16:45","17:15","17:45","18:15","18:45","19:15","19:45"],"models":{"9:15":{"status":"ok","intercept":27.0146,"saturday":1.7832,"sunday":6.7189,"holiday":0.0,"cloudy":0.5935,"rainy":-5.8877,"max_temp":-0.1371,"min_temp":-0.2215,"precipitation":-0.3704,"r2":0.4791,"n_samples":34,"has_holiday_data":false},"9:45":{"status":"ok","intercept":109.3083,"saturday":29.5049,"sunday":20.1895,"holiday":0.0,"cloudy":-0.9019,"rainy":-5.4183,"max_temp":-1.2799,"min_temp":-0.3834,"precipitation":-1.8216,"r2":0.7057,"n_samples":35,"has_holiday_data":false},"10:15":{"status":"ok","intercept":99.2916,"saturday":24.8804,"sunday":13.6325,"holiday":-0.0,"cloudy":10.4091,"rainy":0.8288,"max_temp":-1.4373,"min_temp":-0.3845,"precipitation":-1.6423,"r2":0.6637,"n_samples":35,"has_holiday_data":false},"10:45":{"status":"ok","intercept":98.2197,"saturday":20.3868,"sunday":0.7204,"holiday":-0.0,"cloudy":11.9121,"rainy":-1.2271,"max_temp":-0.9698,"min_temp":-1.18,"precipitation":-1.4056,"r2":0.6252,"n_samples":35,"has_holiday_data":false},"11:15":{"status":"ok","intercept":109.1055,"saturday":15.8099,"sunday":4.688,"holiday":0.0,"cloudy":3.9318,"rainy":-6.5529,"max_temp":0.2853,"min_temp":-2.9037,"precipitation":-1.4277,"r2":0.6458,"n_samples":35,"has_holiday_data":false},"11:45":{"status":"ok","intercept":117.6832,"saturday":19.7173,"sunday":9.4346,"holiday":0.0,"cloudy":-0.3062,"rainy":-4.8592,"max_temp":-0.1281,"min_temp":-2.9274,"precipitation":-1.7772,"r2":0.6978,"n_samples":36,"has_holiday_data":false},"12:15":{"status":"ok","intercept":114.6731,"saturday":7.0115,"sunday":-1.0518,"holiday":-0.0,"cloudy":7.8514,"rainy":-5.1632,"max_temp":-1.0681,"min_temp":-1.3232,"precipitation":-1.7556,"r2":0.4721,"n_samples":36,"has_holiday_data":false},"12:45":{"status":"ok","intercept":146.2783,"saturday":15.2436,"sunday":-7.4245,"holiday":0.0,"cloudy":6.7061,"rainy":-14.232,"max_temp":-3.7026,"min_temp":0.8679,"precipitation":-1.9246,"r2":0.5638,"n_samples":36,"has_holiday_data":false},"13:15":{"status":"ok","intercept":163.7158,"saturday":4.6155,"sunday":0.4328,"holiday":-0.0,"cloudy":2.2957,"rainy":-17.4511,"max_temp":-3.5718,"min_temp":0.1619,"precipitation":-2.0352,"r2":0.604,"n_samples":35,"has_holiday_data":false},"13:45":{"status":"ok","intercept":148.2279,"saturday":1.6056,"sunday":-4.5606,"holiday":0.0,"cloudy":10.2515,"rainy":-3.5144,"max_temp":-2.6863,"min_temp":-0.5803,"precipitation":-1.7999,"r2":0.5027,"n_samples":35,"has_holiday_data":false},"14:15":{"status":"ok","intercept":135.7545,"saturday":-0.1735,"sunday":-2.6268,"holiday":0.0,"cloudy":2.1563,"rainy":-6.9048,"max_temp":-1.817,"min_temp":-0.7897,"precipitation":-1.8403,"r2":0.434,"n_samples":36,"has_holiday_data":false},"14:45":{"status":"ok","intercept":114.7192,"saturday":10.2515,"sunday":-4.311,"holiday":-0.0,"cloudy":10.8147,"rainy":-4.4155,"max_temp":0.7399,"min_temp":-3.3274,"precipitation":-1.4214,"r2":0.5865,"n_samples":36,"has_holiday_data":false},"15:15":{"status":"ok","intercept":131.6824,"saturday":11.2443,"sunday":-5.9324,"holiday":-0.0,"cloudy":19.4398,"rainy":3.4487,"max_temp":-1.8771,"min_temp":-0.9618,"precipitation":-1.6878,"r2":0.5763,"n_samples":35,"has_holiday_data":false},"15:45":{"status":"ok","intercept":178.3041,"saturday":13.98,"sunday":-12.7676,"holiday":-0.0,"cloudy":-2.385,"rainy":-15.2649,"max_temp":-1.1237,"min_temp":-3.1264,"precipitation":-1.935,"r2":0.6914,"n_samples":32,"has_holiday_data":false},"16:15":{"status":"ok","intercept":136.6201,"saturday":9.3194,"sunday":-12.7916,"holiday":-0.0,"cloudy":9.5041,"rainy":-2.139,"max_temp":-0.334,"min_temp":-2.8198,"precipitation":-1.4467,"r2":0.6006,"n_samples":33,"has_holiday_data":false},"16:45":{"status":"ok","intercept":148.3212,"saturday":8.4591,"sunday":-10.3468,"holiday":-0.0,"cloudy":18.6415,"rainy":9.0345,"max_temp":-0.2576,"min_temp":-4.06,"precipitation":-1.6473,"r2":0.6473,"n_samples":35,"has_holiday_data":false},"17:15":{"status":"ok","intercept":150.905,"saturday":9.3387,"sunday":-5.419,"holiday":0.0,"cloudy":4.2988,"rainy":-7.229,"max_temp":-1.2175,"min_temp":-2.4543,"precipitation":-1.6021,"r2":0.5574,"n_samples":36,"has_holiday_data":false},"17:45":{"status":"ok","intercept":116.7259,"saturday":15.1398,"sunday":-3.6537,"holiday":0.0,"cloudy":0.6499,"rainy":-7.1416,"max_temp":-1.691,"min_temp":-0.1475,"precipitation":-1.5159,"r2":0.513,"n_samples":36,"has_holiday_data":false},"18:15":{"status":"ok","intercept":113.5556,"saturday":14.3537,"sunday":-0.7045,"holiday":0.0,"cloudy":-8.8327,"rainy":-15.5638,"max_temp":-1.3011,"min_temp":-0.3228,"precipitation":-1.4244,"r2":0.6213,"n_samples":36,"has_holiday_data":false},"18:45":{"status":"ok","intercept":77.7337,"saturday":16.3471,"sunday":-0.3387,"holiday":-0.0,"cloudy":-7.8331,"rainy":-10.9552,"max_temp":-1.4094,"min_temp":0.9238,"precipitation":-1.0572,"r2":0.6154,"n_samples":35,"has_holiday_data":false},"19:15":{"status":"ok","intercept":75.7961,"saturday":15.4222,"sunday":6.6214,"holiday":-0.0,"cloudy":-10.0424,"rainy":-11.1685,"max_temp":-2.1102,"min_temp":1.7346,"precipitation":-1.1154,"r2":0.5726,"n_samples":32,"has_holiday_data":false},"19:45":{"status":"ok","intercept":91.387,"saturday":10.0966,"sunday":4.9392,"holiday":-0.0,"cloudy":-8.9481,"rainy":-16.7043,"max_temp":-2.9186,"min_temp":1.9424,"precipitation":-1.1739,"r2":0.7384,"n_samples":27,"has_holiday_data":false}}};
+
+function loadWaitModel() {
+    waitModel = WAIT_MODEL_INLINE;
+}
+
+async function fetchWeatherRange() {
+    if (weatherCache) return;
+    const url = 'https://api.open-meteo.com/v1/forecast' +
+                '?latitude=35.633&longitude=139.880' +
+                '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode' +
+                '&timezone=Asia%2FTokyo&forecast_days=16';
+    let r;
+    try {
+        r = await fetch(url);
+    } catch (e) {
+        throw new Error('気象データを取得できません。インターネット接続を確認してください。（' + e.message + '）');
+    }
+    if (!r.ok) throw new Error(`Open-Meteo API エラー (${r.status})`);
+    weatherCache = await r.json();
+    if (!weatherCache.daily || !weatherCache.daily.time) {
+        throw new Error('気象データの形式が不正です');
+    }
+}
+
+function getWeatherForDate(dateStr) {
+    const idx = weatherCache.daily.time.indexOf(dateStr);
+    if (idx === -1) return null;
+    const code = weatherCache.daily.weathercode[idx];
+    return {
+        maxTemp:       weatherCache.daily.temperature_2m_max[idx],
+        minTemp:       weatherCache.daily.temperature_2m_min[idx],
+        precipitation: weatherCache.daily.precipitation_sum[idx],
+        weather:       wmoToWeather(code),
+    };
+}
+
+function calcSlot(slotModel, dayType, weather, maxTemp, minTemp, precip) {
+    if (!slotModel || slotModel.status === '運休')    return { type: '運休',    value: null };
+    if (slotModel.status !== 'ok')                    return { type: 'データなし', value: null };
+
+    const isSat    = dayType === '土曜' ? 1 : 0;
+    const isCloudy = weather  === '曇'  ? 1 : 0;
+    const isRainy  = weather  === '雨'  ? 1 : 0;
+
+    // 祝日データなし → 日曜と同等として扱う
+    let isSun = dayType === '日曜' ? 1 : 0;
+    let isHol = dayType === '祝日' ? 1 : 0;
+    if (isHol && !slotModel.has_holiday_data) { isSun = 1; isHol = 0; }
+
+    const v = slotModel.intercept
+        + slotModel.saturday      * isSat
+        + slotModel.sunday        * isSun
+        + slotModel.holiday       * isHol
+        + slotModel.cloudy        * isCloudy
+        + slotModel.rainy         * isRainy
+        + slotModel.max_temp      * maxTemp
+        + slotModel.min_temp      * minTemp
+        + slotModel.precipitation * precip;
+
+    return { type: 'ok', value: Math.max(0, Math.round(v)) };
+}
+
+/* ── ステップ切り替え ── */
+function showPredictStep(step) {
+    predictStep = step;
+    document.getElementById('step-calendar').style.display          = step === 1 ? 'block' : 'none';
+    document.getElementById('step-attraction').style.display        = step === 2 ? 'block' : 'none';
+    document.getElementById('step-result').style.display            = step === 3 ? 'block' : 'none';
+    document.getElementById('step-compare').style.display           = step === 4 ? 'block' : 'none';
+    document.getElementById('step-compare-result').style.display    = step === 5 ? 'block' : 'none';
+
+    const titles = {
+        1: '⏱ 待ち時間予測',
+        2: 'アトラクション選択',
+        3: '待ち時間予測',
+        4: 'アトラクション比較',
+        5: '比較結果',
+    };
+    document.getElementById('predict-header-title').textContent = titles[step] || '待ち時間予測';
+}
+
+/* ── 画面開閉 ── */
+function showPredict() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    calYear  = today.getFullYear();
+    calMonth = today.getMonth();
+    selectedDate       = null;
+    selectedAttraction = null;
+    renderCalendar();
+    showPredictStep(1);
+    showScreen('screen-predict');
+}
+
+function backFromPredict() {
+    if (predictStep === 5) { showPredictStep(4); return; }
+    if (predictStep === 4) { showPredictStep(2); return; }
+    if (predictStep === 3) { showPredictStep(2); return; }
+    if (predictStep === 2) { showPredictStep(1); return; }
+    showSelect();
+}
+
+function moveCalMonth(delta) {
+    calMonth += delta;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    if (calMonth < 0)  { calMonth = 11; calYear--; }
+    renderCalendar();
+}
+
+/* ── カレンダー描画 ── */
+function renderCalendar() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxDate = new Date(today); maxDate.setDate(maxDate.getDate() + 15);
+
+    const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('cal-title').textContent = `${calYear}年 ${MONTHS[calMonth]}`;
+
+    const firstDay = new Date(calYear, calMonth, 1);
+    const lastDay  = new Date(calYear, calMonth + 1, 0);
+    const startDow = firstDay.getDay();
+
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+
+    ['日','月','火','水','木','金','土'].forEach((label, i) => {
+        const el = document.createElement('div');
+        el.className = 'cal-dayname' + (i===0?' is-sun':i===6?' is-sat':'');
+        el.textContent = label;
+        grid.appendChild(el);
+    });
+
+    for (let i = 0; i < startDow; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-day empty';
+        grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+        const date = new Date(calYear, calMonth, d);
+        date.setHours(0,0,0,0);
+        const disabled = date < today || date > maxDate;
+        const isToday  = date.getTime() === today.getTime();
+        const dow      = date.getDay();
+        const isHol    = JP_HOLIDAYS.has(toISODate(date));
+
+        let cls = 'cal-day';
+        if (disabled)                  cls += ' disabled';
+        else if (isToday)              cls += ' today';
+        if (!disabled && dow === 0)    cls += ' is-sun';
+        if (!disabled && dow === 6)    cls += ' is-sat';
+        if (!disabled && isHol)        cls += ' is-hol';
+
+        const el = document.createElement('div');
+        el.className  = cls;
+        el.textContent = d;
+        if (!disabled) {
+            el.onclick = function() { onDateSelect(date, this); };
+        }
+        grid.appendChild(el);
+    }
+}
+
+/* ── Step 1: 日付選択 → アトラクション選択へ ── */
+function onDateSelect(date, el) {
+    document.querySelectorAll('.cal-day.selected').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDate = date;
+    renderDateConfirmBar(date);
+    renderAttrList();
+    showPredictStep(2);
+}
+
+/* ── 日付確認バー描画 ── */
+function renderDateConfirmBar(date) {
+    const WN = ['日','月','火','水','木','金','土'];
+    const dayType = getDayType(date);
+    const dtColor = { '平日':'#89b4fa','土曜':'#a0f0a0','日曜':'#ff8888','祝日':'#ffb3f0' }[dayType] || '#fff';
+    document.getElementById('date-confirm-bar').innerHTML = `
+        <div class="dcb-inner">
+            <div class="dcb-date">
+                🗓 ${date.getMonth()+1}月${date.getDate()}日（${WN[date.getDay()]}）
+                <span class="dcb-daytype" style="color:${dtColor}">${dayType}</span>
+            </div>
+            <button class="dcb-change" onclick="showPredictStep(1)">変更</button>
+        </div>`;
+}
+
+/* ── アトラクションリスト描画 ── */
+function renderAttrList() {
+    const list = document.getElementById('attr-list');
+    list.innerHTML = '';
+
+    // ── 先頭に「比較する」を追加 ──
+    const compareItem = document.createElement('div');
+    compareItem.className = 'attr-item compare-item';
+    compareItem.innerHTML = `
+        <span class="attr-emoji">📊</span>
+        <div class="attr-info">
+            <div class="attr-name">比較する</div>
+            <div class="attr-area">複数アトラクションを同時に比較</div>
+        </div>
+        <span class="item-arrow">›</span>`;
+    compareItem.onclick = () => showCompareSelect();
+    list.appendChild(compareItem);
+
+    ATTRACTIONS.forEach(attr => {
+        const item = document.createElement('div');
+        item.className = 'attr-item';
+        item.innerHTML = `
+            <span class="attr-emoji">${attr.emoji}</span>
+            <div class="attr-info">
+                <div class="attr-name">${attr.name}</div>
+                <div class="attr-area">${attr.area}</div>
+            </div>
+            <span class="item-arrow">›</span>`;
+        item.onclick = () => onAttractionSelect(attr.id);
+        list.appendChild(item);
+    });
+}
+
+/* ── Step 2: アトラクション選択 → 予測実行 ── */
+async function onAttractionSelect(attractionId) {
+    selectedAttraction = ATTRACTIONS.find(a => a.id === attractionId);
+    if (!selectedAttraction) return;
+
+    showPredictStep(3);
+
+    // 結果コンテキストバー
+    const WN = ['日','月','火','水','木','金','土'];
+    const d  = selectedDate;
+    const dayType = getDayType(d);
+    const dtColor = { '平日':'#89b4fa','土曜':'#a0f0a0','日曜':'#ff8888','祝日':'#ffb3f0' }[dayType] || '#fff';
+    document.getElementById('result-context-bar').innerHTML = `
+        <span class="rcb-emoji">${selectedAttraction.emoji}</span>
+        <div class="rcb-info">
+            <div class="rcb-name">${selectedAttraction.name}</div>
+            <div class="rcb-date">
+                ${d.getMonth()+1}月${d.getDate()}日（${WN[d.getDay()]}）
+                <span style="color:${dtColor};margin-left:4px">${dayType}</span>
+            </div>
+        </div>`;
+
+    document.getElementById('predict-result').style.display  = 'none';
+    document.getElementById('predict-error').style.display   = 'none';
+    document.getElementById('predict-loading').style.display = 'flex';
+
+    try {
+        const model = selectedAttraction.getModel();
+        loadWaitModel();
+        // 選択アトラクションのモデルを使用
+        const activeModel = model || waitModel;
+        await fetchWeatherRange();
+
+        const dateStr = toISODate(selectedDate);
+        const wx = getWeatherForDate(dateStr);
+        if (!wx) throw new Error('気象データを取得できません。16日以内の日付を選択してください。');
+
+        const slots = activeModel.time_slots;
+        const preds = slots.map(slot => ({
+            slot,
+            ...calcSlot(activeModel.models[slot], dayType, wx.weather, wx.maxTemp, wx.minTemp, wx.precipitation),
+        }));
+
+        renderWeatherInfo(selectedDate, dayType, wx);
+        renderPredList(preds);
+        renderPredChart(slots, preds);
+
+        document.getElementById('predict-loading').style.display = 'none';
+        document.getElementById('predict-result').style.display  = 'block';
+
+    } catch (err) {
+        document.getElementById('predict-loading').style.display = 'none';
+        const errEl = document.getElementById('predict-error');
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+    }
+}
+
+/* ── 気象情報カード ── */
+function renderWeatherInfo(date, dayType, wx) {
+    const WN = ['日','月','火','水','木','金','土'];
+    const m = date.getMonth() + 1, d = date.getDate(), w = WN[date.getDay()];
+    const wxEmoji = { '晴':'☀️', '曇':'☁️', '雨':'🌧️' }[wx.weather] || '';
+    const dtColor = { '平日':'#89b4fa','土曜':'#a0f0a0','日曜':'#ff8888','祝日':'#ffb3f0' }[dayType] || '#fff';
+
+    document.getElementById('weather-info').innerHTML = `
+        <div class="wi-date">${m}月${d}日（${w}）</div>
+        <div class="wi-row">
+            <span class="wi-daytype" style="color:${dtColor}">${dayType}</span>
+            <span class="wi-weather">${wxEmoji} ${wx.weather}</span>
+        </div>
+        <div class="wi-row">
+            <span class="wi-temp">🌡 ${wx.maxTemp}° / ${wx.minTemp}°</span>
+        </div>
+        <div class="wi-row">
+            <span class="wi-rain">💧 ${wx.precipitation} mm</span>
+        </div>
+    `;
+}
+
+/* ── 予測リスト ── */
+function renderPredList(preds) {
+    const list = document.getElementById('predict-list');
+    list.innerHTML = '';
+    preds.forEach(({ slot, type, value }) => {
+        let text, cls;
+        if      (type === '運休')    { text = '運休時間帯'; cls = 'badge-closed'; }
+        else if (type === 'データなし') { text = 'データなし';  cls = 'badge-nodata'; }
+        else {
+            text = `${value}分待ち予測`;
+            cls  = value < 30 ? 'badge-low' : value < 60 ? 'badge-mid' : value < 90 ? 'badge-high' : 'badge-vhigh';
+        }
+        const barW = (type === 'ok') ? Math.min(100, Math.round(value / 1.6)) : 0;
+
+        const item = document.createElement('div');
+        item.className = 'pred-item';
+        item.innerHTML = `
+            <span class="pred-slot">${slot}</span>
+            <div class="pred-right">
+                <span class="pred-badge ${cls}">${text}</span>
+                ${type === 'ok'
+                    ? `<div class="pred-bar"><div class="pred-bar-fill" style="width:${barW}%"></div></div>`
+                    : ''}
+            </div>`;
+        list.appendChild(item);
+    });
+}
+
+/* ── 比較選択画面を開く ── */
+function showCompareSelect() {
+    selectedCompareAttrIds = ATTRACTIONS.map(a => a.id);
+    _renderCompareDateBar('compare-date-bar', '変更', () => showPredictStep(1));
+    renderCompareCheckList();
+    showPredictStep(4);
+}
+
+function _renderCompareDateBar(elementId, btnLabel, btnAction) {
+    const WN = ['日','月','火','水','木','金','土'];
+    const date = selectedDate;
+    const dayType = getDayType(date);
+    const dtColor = { '平日':'#89b4fa','土曜':'#a0f0a0','日曜':'#ff8888','祝日':'#ffb3f0' }[dayType] || '#fff';
+    const el = document.getElementById(elementId);
+    el.innerHTML = `
+        <div class="dcb-inner">
+            <div class="dcb-date">
+                🗓 ${date.getMonth()+1}月${date.getDate()}日（${WN[date.getDay()]}）
+                <span class="dcb-daytype" style="color:${dtColor}">${dayType}</span>
+            </div>
+            <button class="dcb-change" id="${elementId}-btn">${btnLabel}</button>
+        </div>`;
+    document.getElementById(`${elementId}-btn`).onclick = btnAction;
+}
+
+/* ── 比較チェックリスト描画 ── */
+function renderCompareCheckList() {
+    const list = document.getElementById('compare-check-list');
+    list.innerHTML = '';
+    ATTRACTIONS.forEach((attr, idx) => {
+        const isChecked = selectedCompareAttrIds.includes(attr.id);
+        const color = ATTRACTION_COLORS[idx % ATTRACTION_COLORS.length];
+        const item = document.createElement('div');
+        item.className = 'compare-check-item' + (isChecked ? ' checked' : '');
+        item.innerHTML = `
+            <div class="compare-checkbox">${isChecked ? '✓' : ''}</div>
+            <span class="attr-emoji">${attr.emoji}</span>
+            <div class="attr-info">
+                <div class="attr-name">${attr.name}</div>
+                <div class="attr-area" style="display:flex;align-items:center;gap:6px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color.border};flex-shrink:0"></span>
+                    ${attr.area}
+                </div>
+            </div>`;
+        item.onclick = () => toggleCompareAttr(attr.id);
+        list.appendChild(item);
+    });
+    document.getElementById('compare-run-btn').disabled = selectedCompareAttrIds.length === 0;
+}
+
+function toggleCompareAttr(attrId) {
+    const idx = selectedCompareAttrIds.indexOf(attrId);
+    if (idx === -1) selectedCompareAttrIds.push(attrId);
+    else selectedCompareAttrIds.splice(idx, 1);
+    renderCompareCheckList();
+}
+
+/* ── 比較実行 ── */
+async function runComparison() {
+    if (selectedCompareAttrIds.length === 0) return;
+
+    showPredictStep(5);
+    _renderCompareDateBar('compare-result-date-bar', '選び直す', () => showPredictStep(4));
+
+    document.getElementById('compare-result-content').style.display = 'none';
+    document.getElementById('compare-error').style.display = 'none';
+    document.getElementById('compare-loading').style.display = 'flex';
+
+    try {
+        await fetchWeatherRange();
+        const dateStr = toISODate(selectedDate);
+        const wx = getWeatherForDate(dateStr);
+        if (!wx) throw new Error('気象データを取得できません。16日以内の日付を選択してください。');
+
+        const dayType = getDayType(selectedDate);
+        const slots = WAIT_MODEL_INLINE.time_slots;
+
+        const selectedAttrs = ATTRACTIONS.filter(a => selectedCompareAttrIds.includes(a.id));
+        const datasets = selectedAttrs.map(attr => {
+            const colorIdx = ATTRACTIONS.indexOf(attr);
+            const color = ATTRACTION_COLORS[colorIdx % ATTRACTION_COLORS.length];
+            const model = attr.getModel();
+            const data = slots.map(slot => {
+                const res = calcSlot(model.models[slot], dayType, wx.weather, wx.maxTemp, wx.minTemp, wx.precipitation);
+                return res.type === 'ok' ? res.value : null;
+            });
+            return {
+                label: attr.name,
+                data,
+                borderColor: color.border,
+                backgroundColor: color.bg,
+                pointBackgroundColor: color.border,
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                tension: 0.35,
+                fill: false,
+                spanGaps: true,
+            };
+        });
+
+        renderCompareChart(slots, datasets);
+        document.getElementById('compare-loading').style.display = 'none';
+        document.getElementById('compare-result-content').style.display = 'block';
+
+    } catch (err) {
+        document.getElementById('compare-loading').style.display = 'none';
+        const errEl = document.getElementById('compare-error');
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+    }
+}
+
+/* ── 比較折れ線グラフ ── */
+function renderCompareChart(slots, datasets) {
+    if (compareChart) { compareChart.destroy(); compareChart = null; }
+    const ctx = document.getElementById('compare-chart').getContext('2d');
+    compareChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: slots, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#fff',
+                        font: { size: 11 },
+                        boxWidth: 12,
+                        padding: 10,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                    },
+                },
+                tooltip: {
+                    callbacks: { label: c => `${c.dataset.label}: ${c.raw ?? 'ー'}分待ち` },
+                    backgroundColor: '#1a1a3e',
+                    titleColor: '#ffd700',
+                    bodyColor: '#fff',
+                    borderColor: '#2a2a5e',
+                    borderWidth: 1,
+                },
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#89b4fa', font: { size: 9 }, maxRotation: 60, minRotation: 45 },
+                    grid:  { color: 'rgba(255,255,255,0.04)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#89b4fa', font: { size: 10 } },
+                    grid:  { color: 'rgba(255,255,255,0.04)' },
+                    title: { display: true, text: '分', color: '#89b4fa', font: { size: 10 } },
+                },
+            },
+        },
+    });
+}
+
+/* ── 折れ線グラフ ── */
+function renderPredChart(slots, preds) {
+    if (predChart) { predChart.destroy(); predChart = null; }
+    const ctx = document.getElementById('wait-chart').getContext('2d');
+    const data = preds.map(p => p.type === 'ok' ? p.value : null);
+
+    predChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: slots,
+            datasets: [{
+                data,
+                borderColor: '#ffd700',
+                backgroundColor: 'rgba(255,215,0,0.12)',
+                borderWidth: 2,
+                pointBackgroundColor: '#ffd700',
+                pointRadius: 2.5,
+                pointHoverRadius: 5,
+                tension: 0.35,
+                fill: true,
+                spanGaps: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: { label: c => `${c.raw ?? 'ー'}分待ち` },
+                    backgroundColor: '#1a1a3e',
+                    titleColor: '#ffd700',
+                    bodyColor: '#fff',
+                    borderColor: '#2a2a5e',
+                    borderWidth: 1,
+                },
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#89b4fa', font: { size: 7 }, maxRotation: 60, minRotation: 45 },
+                    grid:  { color: 'rgba(255,255,255,0.04)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#89b4fa', font: { size: 8 } },
+                    grid:  { color: 'rgba(255,255,255,0.04)' },
+                    title: { display: true, text: '分', color: '#89b4fa', font: { size: 8 } },
+                },
+            },
+        },
+    });
+}
+</script>
+</body>
+</html>
