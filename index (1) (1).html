@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ディズニー施設マップ</title>
+    <style>
+      #map { height: 100%; width: 100%; }
+      html, body { height: 100%; margin: 0; padding: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      // 地図を出すための命令をここに書く（またはindex.jsに書く）
+      function initMap() {
+        const center = { lat: 35.6326, lng: 139.8806 }; // 舞浜周辺
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 17,
+          center: center,
+        });
+        new google.maps.Marker({ position: center, map: map });
+      }
+    </script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap">
+    </script>
+  </body>
+</html>
