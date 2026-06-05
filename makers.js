@@ -1,52 +1,125 @@
-<!DOCTYPE html>
-<html>
+const facilities = [
+{
+    name: "しょうゆバター味",
+    category: "popcorn",
+    lat: 35.6338108019477,
+    lng: 139.88056946100153
+  },
 
-<head>
-  <meta charset="utf-8">
-  <title>Disney Map</title>
+  {
+    name: "キャラメル味",
+    category: "popcorn",
+    lat: 35.631484512194405,
+    lng: 139.8786118876311
+  },
 
-  <style>
+  {
+    name: "塩味",
+    category: "popcorn",
+    lat: 35.63226241087617,
+    lng: 139.87868158205404
+  },
 
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
+  {
+    name: "ハニー味",
+    category: "popcorn",
+    lat: 35.631248196980984,
+    lng: 139.87974443746873
+  },
 
-    #map {
-      height: 100%;
-    }
+  {
+    name: "ポップコーン専門店",
+    category: "popcorn",
+    lat: 35.63151166818746,
+    lng: 139.87945807691634
+  },
 
-  </style>
-</head>
+  {
+    name: "コンポタ味",
+    category: "popcorn",
+    lat: 35.63099732244331,
+    lng: 139.88087439259698
+  },
 
-<body>
+  {
+    name: "ブラックペッパー味",
+    category: "popcorn",
+    lat: 35.631954898812246,
+    lng: 139.88256668987793
+  },
 
-<div>
-  <button onclick="showCategory('all')">
-    すべて
-  </button>
+  {
+    name: "キャラメル味②",
+    category: "popcorn",
+    lat: 35.633563095725094,
+    lng: 139.8794883027647
+  },
 
-  <button onclick="showCategory('toilet')">
-    🚻トイレ
-  </button>
+  {
+    name: "ミルクチョコレート味",
+    category: "popcorn",
+    lat: 35.63005416417772,
+    lng: 139.87971737631196
+  },
 
-  <button onclick="showCategory('popcorn')">
-    🍿ポップコーン
-  </button>
-</div>
+  {
+    name: "ハニー味②",
+    category: "popcorn",
+    lat: 35.630286049168404,
+    lng: 139.87986146318096
+  },
 
-<div id="map"></div>
+  {
+    name: "カレー味",
+    category: "popcorn",
+    lat: 35.63287651752296,
+    lng: 139.8819705823898
+  },
 
-<!-- 座標データ -->
-<script src="facilities.js"></script>
+  // ===== フード =====
 
-<!-- 地図処理 -->
-<script src="app.js"></script>
+  {
+    name: "テリヤキチキンレッグ",
+    category: "food",
+    lat: 35.63355563854234,
+    lng: 139.88219916220535
+  },
 
-<!-- Google Maps -->
-<script async
-src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
-</script>
+  {
+    name: "スモークターキーレッグ",
+    category: "food",
+    lat: 35.632115797333114,
+    lng: 139.8842140953605
+  },
 
-</body>
-</html>
+  // ===== トイレ =====
+
+  {
+    name: "トイレ（ベイマックス前）",
+    category: "toilet",
+    lat: 35.63239391006974,
+    lng: 139.87888364644343
+  },
+
+  {
+    name: "トイレ（美女と野獣入口前）",
+    category: "toilet",
+    lat: 35.6314613997614,
+    lng: 139.87882029079813
+  },
+
+  {
+    name: "トイレ（スプラッシュ前）",
+    category: "toilet",
+    lat: 35.63035420859266,
+    lng: 139.88349412694708
+  },
+
+  {
+    name: "トイレ（ビッグサンダー前）",
+    category: "toilet",
+    lat: 35.63257049174343,
+    lng: 139.88335266495415
+  }
+
+];
