@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ディズニーマップ</title>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#map {
+  height: 100%;
+}
+
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+button {
+  padding: 10px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button onclick="showCategory('all')">すべて表示</button>
+  <button onclick="showCategory('toilet')">🚻 トイレ</button>
+  <button onclick="showCategory('popcorn')">🍿 ポップコーン</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+
+let map;
+let markers = [];
+
+const facilities = [
+
+  // ===== ポップコーン =====
+
+  {
+    name: "しょうゆバター味",
+    category: "popcorn",
+    lat: 35.6338108019477,
+    lng: 139.88056946100153
+  },
+
+  {
+    name: "キャラメル味",
+    category: "popcorn",
+    lat: 35.631484512194405,
+    lng: 139.8786118876311
+  },
+
+  {
+    name: "塩味",
+    category: "popcorn",
+    lat: 35.63226241087617,
+    lng: 139.87868158205404
+  },
+
+  {
+    name: "ハニー味",
+    category: "popcorn",
+    lat: 35.631248196980984,
+    lng: 139.87974443746873
+  },
+
+  {
+    name: "ポップコーン専門店",
+    category: "popcorn",
+    lat: 35.63151166818746,
+    lng: 139.87945807691634
+  },
+
+  {
+    name: "コンポタ味",
+    category: "popcorn",
+    lat: 35.63099732244331,
+    lng: 139.88087439259698
+  },
+
+  {
+    name: "ブラックペッパー味",
+    category: "popcorn",
+    lat: 35.631954898812246,
+    lng: 139.88256668987793
+  },
+
+  {
+    name: "キャラメル味②",
+    category: "popcorn",
+    lat: 35.633563095725094,
+    lng: 139.8794883027647
+  },
+
+  {
+    name: "ミルクチョコレート味",
+    category: "popcorn",
+    lat: 35.63005416417772,
+    lng: 139.87971737631196
+  },
+
+  {
+    name: "ハニー味②",
+    category: "popcorn",
+    lat: 35.630286049168404,
+    lng: 139.87986146318096
+  },
+
+  {
+    name: "カレー味",
+    category: "popcorn",
+    lat: 35.63287651752296,
+    lng: 139.8819705823898
+  },
+
+  // ===== フード =====
+
+  {
+    name: "テリヤキチキンレッグ",
+    category: "food",
+    lat: 35.63355563854234,
+    lng: 139.88219916220535
+  },
+
+  {
+    name: "スモークターキーレッグ",
+    category: "food",
+    lat: 35.632115797333114,
+    lng: 139.8842140953605
+  },
+
+  // ===== トイレ =====
+
+  {
+    name: "トイレ（ベイマックス前）",
+    category: "toilet",
+    lat: 35.63239391006974,
+    lng: 139.87888364644343
+  },
+
+  {
+    name: "トイレ（美女と野獣入口前）",
+    category: "toilet",
+    lat: 35.6314613997614,
+    lng: 139.87882029079813
+  },
+
+  {
+    name: "トイレ（スプラッシュ前）",
+    category: "toilet",
+    lat: 35.63035420859266,
+    lng: 139.88349412694708
+  },
+
+  {
+    name: "トイレ（ビッグサンダー前）",
+    category: "toilet",
+    lat: 35.63257049174343,
+    lng: 139.88335266495415
+  }
+
+];
+
+function initMap() {
+
+  map = new google.maps.Map(
+    document.getElementById("map"),
+    {
+      center: {
+        lat: 35.6326,
+        lng: 139.8806
+      },
+      zoom: 17
+    }
+  );
+
+  showCategory("all");
+}
+
+function clearMarkers() {
+
+  markers.forEach(marker => {
+    marker.setMap(null);
+  });
+
+  markers = [];
+}
+
+function showCategory(category) {
+
+  clearMarkers();
+
+  facilities.forEach(place => {
+
+    if (
+      category !== "all" &&
+      place.category !== category
+    ) {
+      return;
+    }
+
+    let iconColor;
+
+    switch(place.category) {
+
+      case "toilet":
+        iconColor = "blue";
+        break;
+
+      case "popcorn":
+        iconColor = "yellow";
+        break;
+
+      case "food":
+        iconColor = "green";
+        break;
+
+      default:
+        iconColor = "red";
+    }
+
+    const marker =
+      new google.maps.Marker({
+
+        position: {
+          lat: place.lat,
+          lng: place.lng
+        },
+
+        map: map,
+
+        title: place.name,
+
+        icon:
+          "http://maps.google.com/mapfiles/ms/icons/" +
+          iconColor +
+          "-dot.png"
+
+      });
+
+    const infoWindow =
+      new google.maps.InfoWindow({
+
+        content:
+          "<b>" + place.name + "</b>"
+
+      });
+
+    marker.addListener("click", () => {
+
+      infoWindow.open(
+        map,
+        marker
+      );
+
+    });
+
+    markers.push(marker);
+
+  });
+
+}
+
+</script>
+
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+</script>
+
+</body>
+</html>
