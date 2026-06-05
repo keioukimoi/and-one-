@@ -1,4 +1,4 @@
-const facilities = [
+const markers = [
 {
     name: "しょうゆバター味",
     category: "popcorn",
