@@ -32,18 +32,23 @@
 
         // 【ここを新しく追加！】0.5刻みなどの小数点ズームを有効にする設定
           isFractionalZoomEnabled: true,
-          clickableIcons: false,  // ← ピンをクリックできなくする
+          clickableIcons: false,
           styles: [
             {
               featureType: "poi",
-              stylers: [{ visibility: "off" }]  // ← 施設ピンを全部非表示
-            },
-            {
+              stylers: [{ visibility: "off" }]
+             },
+             {
               featureType: "transit",
-              stylers: [{ visibility: "off" }]  // ← 電車・バス系も非表示
-            }
-          ]
-        });
+              stylers: [{ visibility: "off" }]
+             },
+             {
+                featureType: "all",
+                elementType: "labels.text",
+                stylers: [{ visibility: "off" }]
+              }
+            ]
+          });
         new google.maps.Marker({ position: center, map: map });
         new google.maps.Marker({ position: popsb, map: map });
       }
