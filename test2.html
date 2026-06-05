@@ -31,19 +31,19 @@
           maxZoom: 19,  // これ以上過剰にズームインできない制限
 
         // 【ここを新しく追加！】0.5刻みなどの小数点ズームを有効にする設定
-  isFractionalZoomEnabled: true
-        });
+          isFractionalZoomEnabled: true,
           clickableIcons: false,  // ← ピンをクリックできなくする
-  styles: [
-    {
-      featureType: "poi",
-      stylers: [{ visibility: "off" }]  // ← 施設ピンを全部非表示
-    },
-    {
-      featureType: "transit",
-      stylers: [{ visibility: "off" }]  // ← 電車・バス系も非表示
-    }
-  ]
+          styles: [
+            {
+              featureType: "poi",
+              stylers: [{ visibility: "off" }]  // ← 施設ピンを全部非表示
+            },
+            {
+              featureType: "transit",
+              stylers: [{ visibility: "off" }]  // ← 電車・バス系も非表示
+            }
+          ]
+        });
         new google.maps.Marker({ position: center, map: map });
         new google.maps.Marker({ position: popsb, map: map });
       }
