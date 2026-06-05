@@ -1,10 +1,16 @@
 let map;
 
-const markerObjects = markers.map(point => {
-  const markers = new google.maps.Marker({
-    position: { lat: point.lat, lng: point.lng },
-    map: map,
-    title: point.title
+function initializeMarkers(mapInstance) {
+  map = mapInstance;
+  
+  const markerObjects = markers.map(point => {
+    const marker = new google.maps.Marker({  // ← 変数名を markers → marker に変更
+      position: { lat: point.lat, lng: point.lng },
+      map: map,
+      title: point.name  // ← point.title → point.name に修正
+    });
+    return { marker, category: point.category };
   });
-  return { markers, category: point.category };
-});
+  
+  return markerObjects;
+}
