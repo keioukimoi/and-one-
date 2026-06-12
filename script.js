@@ -9,6 +9,13 @@ function initializeMarkers(mapInstance) {
       map: map,
       title: point.name  // ← point.title → point.name に修正
     });
+    const infoWindow = new google.maps.InfoWindow({
+  content: point.name  // タップした時に表示される内容
+});
+
+marker.addListener("click", () => {
+  infoWindow.open(map, marker);  // タップしたらInfoWindowを開く
+});
     return { marker, category: point.category };
   });
   
