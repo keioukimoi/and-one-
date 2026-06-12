@@ -34,18 +34,18 @@ function initializeMarkers(mapInstance) {
     return { marker, category: point.category };
   });
 
-  function updateMarkers() {
-    const zoom = map.getZoom();
-    markerObjects.forEach(({ marker, category }) => {
-      if (zoom >= 17) {
-        marker.setVisible(true);
-      } else if (zoom >= 15.5) {
-        marker.setVisible(category === "toilet");
-      } else {
-        marker.setVisible(false);
-      }
-    });
-  }
+function updateMarkers() {
+  const zoom = map.getZoom();
+  markerObjects.forEach(({ marker, category }) => {
+    if (zoom >= 16.5) {
+      // ズームイン：全部表示
+      marker.setVisible(true);
+    } else {
+      // 引いている：全部非表示
+      marker.setVisible(false);
+    }
+  });
+}
 
   map.addListener("zoom_changed", updateMarkers);
 
