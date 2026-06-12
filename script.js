@@ -1,9 +1,7 @@
 let map;
-
 function initializeMarkers(mapInstance) {
   map = mapInstance;
 
-  // カテゴリ別のアイコン設定
   const icons = {
     popcorn: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
@@ -15,10 +13,9 @@ function initializeMarkers(mapInstance) {
       position: { lat: point.lat, lng: point.lng },
       map: map,
       title: point.name,
-      icon: icons[point.category]  // ← カテゴリに応じたアイコンを設定
+      icon: icons[point.category]
     });
 
-    // タップで名前表示
     const infoWindow = new google.maps.InfoWindow({
       content: `
         <div style="font-size:14px; font-weight:bold;">
@@ -32,24 +29,20 @@ function initializeMarkers(mapInstance) {
     });
 
     return { marker, category: point.category };
-  });
+  }); // ← markerObjects.map終わり
 
-function updateMarkers() {
-  const zoom = map.getZoom();
-  markerObjects.forEach(({ marker, category }) => {
-    if (zoom >= 16.5) {
-      // ズームイン：全部表示
-      marker.setVisible(true);
-    } else {
-      // 引いている：全部非表示
-      marker.setVisible(false);
-    }
-  });
-}
+  function updateMarkers() { // ← ここが外に出る
+    const zoom = map.getZoom();
+    markerObjects.forEach(({ marker, category }) => {
+      if (zoom >= 16.5) {
+        marker.setVisible(true);
+      } else {
+        marker.setVisible(false);
+      }
+    });
+  }
 
   map.addListener("zoom_changed", updateMarkers);
-
-  updateMarkers(); // ← 最初に1回実行する
-
+  updateMarkers();
   return markerObjects;
 }
