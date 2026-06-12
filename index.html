@@ -11,34 +11,39 @@
     <div id="map"></div>
     <script>
       function initMap() {
-        const center = { lat: 35.6326, lng: 139.8806 }; // 舞浜周辺
-
+        const center = { lat: 35.6326, lng: 139.8806 };
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 16.5,
           center: center,
-          
-          // 【ここを追加しました！】表示範囲をディズニー周辺に制限する設定
           restriction: {
             latLngBounds: {
-              north: 35.637544, // 北端のライン
-              south: 35.627657, // 南端のライン
-              east: 139.893391, // 東端のライン
-              west: 139.868139  // 西端のライン
+              north: 35.637544,
+              south: 35.627657,
+              east: 139.893391,
+              west: 139.868139
             },
-            strictBounds: false // 枠の外に引きずり出そうとしたら滑らかに戻す
+            strictBounds: false
           },
-          minZoom: 15, // これ以上ズームアウトして地球を見えなくする制限（迷子防止）
-          maxZoom: 19  // これ以上過剰にズームインできない制限
+          minZoom: 15,
+          maxZoom: 19,
+          isFractionalZoomEnabled: true,
+          clickableIcons: false,
+          disableDefaultUI: true,
+          styles: [
+            { featureType: "poi", stylers: [{ visibility: "off" }] },
+            { featureType: "transit", stylers: [{ visibility: "off" }] },
+            { featureType: "all", elementType: "labels.text", stylers: [{ visibility: "off" }] }
+          ]
+        });
 
-        // 【ここを新しく追加！】0.5刻みなどの小数点ズームを有効にする設定
-  isFractionalZoomEnabled: true
-});
+        // ← この行を削除しました
+        // new google.maps.Marker({ position: center, map: map });
 
-        new google.maps.Marker({ position: center, map: map });
+        initializeMarkers(map); // markers.jsとscript.jsに任せる
       }
     </script>
-    <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap">
-    </script>
+    <script src="markers.js"></script>
+    <script src="script.js"></script>
+    <script async src="GoogleMapsのURL"></script>
   </body>
 </html>
