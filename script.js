@@ -34,7 +34,7 @@ function initializeMarkers(mapInstance) {
     return { marker, category: point.category };
   });
 
-  map.addListener("zoom_changed", () => {
+  function updateMarkers() {
     const zoom = map.getZoom();
     markerObjects.forEach(({ marker, category }) => {
       if (zoom >= 17) {
@@ -45,7 +45,11 @@ function initializeMarkers(mapInstance) {
         marker.setVisible(false);
       }
     });
-  });
-  
+  }
+
+  map.addListener("zoom_changed", updateMarkers);
+
+  updateMarkers(); // ← 最初に1回実行する
+
   return markerObjects;
 }
