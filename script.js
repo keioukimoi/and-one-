@@ -33,16 +33,7 @@ function initializeMarkers(mapInstance) {
 
     return { marker, category: point.category };
   });
-function initializeMarkers(mapInstance) {
-  map = mapInstance;
 
-  const icons = { ... };
-
-  const markerObjects = markers.map(point => {
-    ...
-  });
-
-  // ↓ ここに追加
   map.addListener("zoom_changed", () => {
     const zoom = map.getZoom();
     markerObjects.forEach(({ marker, category }) => {
