@@ -3,7 +3,10 @@ function initializeMarkers(mapInstance) {
   map = mapInstance;
 
   const icons = {
-    popcorn: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    popcorn: {
+  url: "cut.png",
+  scaledSize: new google.maps.Size(40, 40)
+},
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     toilet:  "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
   };
