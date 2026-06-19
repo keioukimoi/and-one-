@@ -33,6 +33,9 @@ function initializeMarkers(mapInstance) {
   function updateMarkers() {
     const zoom = map.getZoom();
     const popcornSize = zoom >= 18 ? 60 : 40;  // ← 追加：ズームに応じたサイズ決定
+      // ズームに応じて段階的にサイズを変える
+    let popcornSize = 30 + (zoom - 15) * 8;  // ズームに比例して大きくなる
+    popcornSize = Math.max(40, Math.min(80, popcornSize));  // 40〜80の範囲に収める
 
     markerObjects.forEach(({ marker, category }) => {
       if (zoom >= 16.5) {
