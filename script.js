@@ -1,16 +1,6 @@
 let map;
 function initializeMarkers(mapInstance) {
   map = mapInstance;
-    const overlay = new google.maps.GroundOverlay(
-    "heikei.png",
-    {
-      north: 35.637544,
-      south: 35.627657,
-      east: 139.893391,
-      west: 139.868139
-    },
-    { map: map }
-  );
   const icons = {
     popcorn: {
       url: "cut.png",
