@@ -9,7 +9,11 @@ function initializeMarkers(mapInstance) {
       east: 139.893391,
       west: 139.868139
     },
-    { map: map }
+    { 
+      map: map
+   　 opacity: 0.5
+    }
+      
   );
   const icons = {
     popcorn: {
