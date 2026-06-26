@@ -11,7 +11,6 @@ function initializeMarkers(mapInstance) {
     },
     { 
       map: map
-   　 opacity: 0.5
     }
       
   );
