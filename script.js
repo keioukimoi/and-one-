@@ -9,7 +9,7 @@ function initializeMarkers(mapInstance) {
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     toilet: {
       url: "toilet.png",
-      scaledSize: new google.maps.Size(60, 60)
+      scaledSize: new google.maps.Size(40, 40)
     },
   };
   const markerObjects = markers.map(point => {
