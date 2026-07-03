@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>揚げ大</title>
+    <title>揚げ男</title>
     <style>
       #map { height: 100%; width: 100%; }
       html, body { height: 100%; margin: 0; padding: 0; }
@@ -17,6 +17,7 @@
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 16.5,
           center: center,
+          heading: 180,
           restriction: {
             latLngBounds: {
               north: 35.637544,
