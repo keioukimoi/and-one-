@@ -40,53 +40,66 @@
         });
         initializeMarkers(map);
 
-        // ===== ここから：ご提示いただいたGeoJSONデータをもとに中抜きマスクを生成 =====
+        // ===== ここから：回転方向に関係なく外側を隠すマスク処理 =====
 
-        // 1. 大外の4点（時計回り）
-        const customOuterPath = [
-          { lat: outerBounds.north, lng: outerBounds.west }, // 左上
-          { lat: outerBounds.north, lng: outerBounds.east }, // 右上
-          { lat: outerBounds.south, lng: outerBounds.east }, // 右下
-          { lat: outerBounds.south, lng: outerBounds.west }  // 左下
+        // GeoJSONで取得した18点の正確な境界線データ
+        const p = [
+          { lat: 35.6298653, lng: 139.8780422 }, // 0
+          { lat: 35.6312691, lng: 139.8774042 }, // 1
+          { lat: 35.6318761, lng: 139.8770931 }, // 2
+          { lat: 35.6341748, lng: 139.877118 },   // 3
+          { lat: 35.6355122, lng: 139.8777946 }, // 4
+          { lat: 35.6361817, lng: 139.8795214 }, // 5
+          { lat: 35.6357622, lng: 139.8811688 }, // 6
+          { lat: 35.6353588, lng: 139.88224 },   // 7
+          { lat: 35.6351491, lng: 139.8828256 }, // 8
+          { lat: 35.6347547, lng: 139.8838088 }, // 9
+          { lat: 35.6330194, lng: 139.8859195 }, // 10
+          { lat: 35.6320171, lng: 139.886249 },  // 11
+          { lat: 35.6312703, lng: 139.8859008 }, // 12
+          { lat: 35.6306529, lng: 139.884315 },  // 13
+          { lat: 35.6303557, lng: 139.8834162 }, // 14
+          { lat: 35.6303006, lng: 139.8826715 }, // 15
+          { lat: 35.6297032, lng: 139.8806598 }, // 16
+          { lat: 35.6293023, lng: 139.880534 }   // 17
         ];
 
-        // 2. 提示されたGeoJSONから抽出した正確な輪郭
-        // 中抜きを成功させるため、配列をリバースして「反時計回り」に強制変換しています
-        const disneyInnerPath = [
-          { lat: 35.6298653, lng: 139.8780422 },
-          { lat: 35.6293023, lng: 139.880534 },
-          { lat: 35.6297032, lng: 139.8806598 },
-          { lat: 35.6303006, lng: 139.8826715 },
-          { lat: 35.6303557, lng: 139.8834162 },
-          { lat: 35.6306529, lng: 139.884315 },
-          { lat: 35.6312703, lng: 139.8850008 },
-          { lat: 35.6320171, lng: 139.886249 },
-          { lat: 35.6330194, lng: 139.8859195 },
-          { lat: 35.6347547, lng: 139.8838088 },
-          { lat: 35.6351491, lng: 139.8828256 },
-          { lat: 35.6353588, lng: 139.88224 },
-          { lat: 35.6357622, lng: 139.8811688 },
-          { lat: 35.6361817, lng: 139.8795214 },
-          { lat: 35.635122, lng: 139.8777946 },
-          { lat: 35.6341748, lng: 139.877118 },
-          { lat: 35.6318761, lng: 139.8770931 },
-          { lat: 35.6312691, lng: 139.8774042 }
-        ];
-
-        // 3. マスクを作成して配置
-        const customMask = new google.maps.Polygon({
-          paths: [customOuterPath, disneyInnerPath],
+        // 共通の白いマスク設定
+        const maskOptions = {
           strokeColor: "#FFFFFF",
           strokeOpacity: 0,
           strokeWeight: 0,
-          fillColor: "#FFFFFF", // マスク部分を白にする
-          fillOpacity: 1.0,     // 完全に不透明にして下の地図を隠す
+          fillColor: "#FFFFFF",
+          fillOpacity: 1.0,
           map: map,
           clickable: false
-        });
+        };
+
+        // ① 多角形の上側のエリアを大外（north）まで白く塗りつぶす
+        const topPath = [{ lat: outerBounds.north, lng: outerBounds.west }, { lat: outerBounds.north, lng: outerBounds.east }];
+        for (let i = 12; i >= 0; i--) topPath.push(p[i]);
+        for (let i = 17; i >= 13; i--) topPath.push(p[i]);
+        new google.maps.Polygon({ ...maskOptions, paths: topPath });
+
+        // ② 多角形の下側のエリアを大外（south）まで白く塗りつぶす
+        const bottomPath = [{ lat: outerBounds.south, lng: outerBounds.east }, { lat: outerBounds.south, lng: outerBounds.west }];
+        for (let i = 0; i <= 12; i++) bottomPath.push(p[i]);
+        new google.maps.Polygon({ ...maskOptions, paths: bottomPath });
+
+        // ③ 多角形の左側のエリアを大外（west）まで白く塗りつぶす
+        const leftPath = [{ lat: outerBounds.north, lng: outerBounds.west }];
+        for (let i = 3; i >= 0; i--) leftPath.push(p[i]);
+        for (let i = 17; i >= 16; i--) leftPath.push(p[i]);
+        leftPath.push({ lat: outerBounds.south, lng: outerBounds.west });
+        new google.maps.Polygon({ ...maskOptions, paths: leftPath });
+
+        // ④ 多角形の右側のエリアを大外（east）まで白く塗りつぶす
+        const rightPath = [{ lat: outerBounds.north, lng: outerBounds.east }, { lat: outerBounds.south, lng: outerBounds.east }];
+        for (let i = 12; i >= 6; i--) rightPath.push(p[i]);
+        new google.maps.Polygon({ ...maskOptions, paths: rightPath });
 
         // ===== ここまで =====
-        
+  
       }
     </script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
