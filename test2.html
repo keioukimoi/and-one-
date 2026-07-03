@@ -39,6 +39,40 @@
           ]
         });
         initializeMarkers(map);
+        
+        // ===== ここから：4点ポリゴンによる中抜きマスク処理を追加 =====
+        
+        // 1. 地球全体を覆う巨大な外枠
+        const worldOuterPath = [
+          { lat: 85, lng: -180 },
+          { lat: 85, lng: 180 },
+          { lat: -85, lng: 180 },
+          { lat: -85, lng: -180 }
+        ];
+
+        // 2. くり抜きたい内枠（現在の restriction の4点を使用）
+        // もしご自身で新しく取得した4点がある場合は、ここの数値を書き換えてください。
+        const innerPath = [
+          { lat: 35.635979763303126, lng: 139.87564738938062 }, // 左上
+          { lat: 35.630501629592345, lng: 139.87577911845923 }, // 左下
+          { lat: 35.63005551096719, lng: 139.8850879733479 }, // 右下
+          { lat: 35.634944835210995, lng: 139.88302421778295 }  // 右上
+        ];
+
+        // 3. マスクを作成して地図上に配置
+        const maskPolygon = new google.maps.Polygon({
+          paths: [worldOuterPath, innerPath],
+          strokeColor: "#FFFFFF",
+          strokeOpacity: 0,
+          strokeWeight: 0,
+          fillColor: "#FFFFFF", // 外側を白く塗りつぶす
+          fillOpacity: 1.0,     // 完全に不透明にして下の地図を隠す
+          map: map,
+          clickable: false      // マスクの下にあるマーカーのクリックを邪魔しない
+        });
+
+        // ===== ここまで =====
+        
       }
     </script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
