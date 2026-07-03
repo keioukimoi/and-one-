@@ -8,7 +8,7 @@ function initializeMarkers(mapInstance) {
     },
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     toilet: {
-      url: "toilet.PNG",
+      url: "toilet.png",
       scaledSize: new google.maps.Size(60, 60)
     },
   };
