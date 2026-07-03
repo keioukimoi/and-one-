@@ -39,6 +39,53 @@
           ]
         });
         initializeMarkers(map);
+
+        // ===== ここから：ご提示いただいたGeoJSONデータをもとに中抜きマスクを生成 =====
+
+        // 1. 大外の4点（時計回り）
+        const customOuterPath = [
+          { lat: outerBounds.north, lng: outerBounds.west }, // 左上
+          { lat: outerBounds.north, lng: outerBounds.east }, // 右上
+          { lat: outerBounds.south, lng: outerBounds.east }, // 右下
+          { lat: outerBounds.south, lng: outerBounds.west }  // 左下
+        ];
+
+        // 2. 提示されたGeoJSONから抽出した正確な輪郭
+        // 中抜きを成功させるため、配列をリバースして「反時計回り」に強制変換しています
+        const disneyInnerPath = [
+          { lat: 35.6298653, lng: 139.8780422 },
+          { lat: 35.6293023, lng: 139.880534 },
+          { lat: 35.6297032, lng: 139.8806598 },
+          { lat: 35.6303006, lng: 139.8826715 },
+          { lat: 35.6303557, lng: 139.8834162 },
+          { lat: 35.6306529, lng: 139.884315 },
+          { lat: 35.6312703, lng: 139.8850008 },
+          { lat: 35.6320171, lng: 139.886249 },
+          { lat: 35.6330194, lng: 139.8859195 },
+          { lat: 35.6347547, lng: 139.8838088 },
+          { lat: 35.6351491, lng: 139.8828256 },
+          { lat: 35.6353588, lng: 139.88224 },
+          { lat: 35.6357622, lng: 139.8811688 },
+          { lat: 35.6361817, lng: 139.8795214 },
+          { lat: 35.635122, lng: 139.8777946 },
+          { lat: 35.6341748, lng: 139.877118 },
+          { lat: 35.6318761, lng: 139.8770931 },
+          { lat: 35.6312691, lng: 139.8774042 }
+        ];
+
+        // 3. マスクを作成して配置
+        const customMask = new google.maps.Polygon({
+          paths: [customOuterPath, disneyInnerPath],
+          strokeColor: "#FFFFFF",
+          strokeOpacity: 0,
+          strokeWeight: 0,
+          fillColor: "#FFFFFF", // マスク部分を白にする
+          fillOpacity: 1.0,     // 完全に不透明にして下の地図を隠す
+          map: map,
+          clickable: false
+        });
+
+        // ===== ここまで =====
         
       }
     </script>
