@@ -31,6 +31,12 @@
     <script>
       function initMap() {
         const center = { lat: 35.6326, lng: 139.8806 };
+        const outerBounds = {
+        north: 35.637544,
+        south: 35.627657,
+        east: 139.893391,
+        west: 139.868139
+      };
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 16.5,
           center: center,
