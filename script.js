@@ -8,8 +8,8 @@ function initializeMarkers(mapInstance) {
     },
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     toilet: {
-      url: "toilet.png",
-      scaledSize: new google.maps.Size(40, 40)
+      url: "toilet.PNG",
+      scaledSize: new google.maps.Size(60, 60)
     },
   };
   const markerObjects = markers.map(point => {
@@ -33,11 +33,11 @@ function initializeMarkers(mapInstance) {
   });
 
   // ↓ ここを修正しました
- function updateMarkers() {
+  function updateMarkers() {
     const zoom = map.getZoom();
-    // ズームに応じて段階的にサイズを変える
-    let iconSize = 30 + (zoom - 15) * 8;  // ズームに比例して大きくなる
-    iconSize = Math.max(35, Math.min(80, iconSize));  // 35〜80の範囲に収める
+      // ズームに応じて段階的にサイズを変える
+    let popcornSize = 30 + (zoom - 15) * 8;  // ズームに比例して大きくなる
+    popcornSize = Math.max(35, Math.min(80, popcornSize));  // 40〜80の範囲に収める
 
     markerObjects.forEach(({ marker, category }) => {
       if (zoom >= 16.5) {
@@ -46,25 +46,17 @@ function initializeMarkers(mapInstance) {
         marker.setVisible(false);
       }
 
-      // ポップコーンのサイズを動的に変更
+      // ↓ ここを追加：ポップコーンだけサイズを動的に変更
       if (category === "popcorn") {
         marker.setIcon({
           url: "cut.png",
-          scaledSize: new google.maps.Size(iconSize, iconSize),
-          anchor: new google.maps.Point(iconSize / 2, iconSize)
-        });
-      }
-
-      // ↓ トイレのサイズを動的に変更（追加）
-      if (category === "toilet") {
-        marker.setIcon({
-          url: "toilet.png",
-          scaledSize: new google.maps.Size(iconSize, iconSize),
-          anchor: new google.maps.Point(iconSize / 2, iconSize)
+          scaledSize: new google.maps.Size(popcornSize, popcornSize),
+          anchor: new google.maps.Point(popcornSize / 2, popcornSize)
         });
       }
     });
   }
+
   map.addListener("zoom_changed", updateMarkers);
   updateMarkers();
   return markerObjects;
