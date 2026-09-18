@@ -1,16 +1,23 @@
 let map;
 function initializeMarkers(mapInstance) {
   map = mapInstance;
+    const overlay = new google.maps.GroundOverlay(
+    "heikei.png",
+    {
+      north: 35.637544,
+      south: 35.627657,
+      east: 139.893391,
+      west: 139.868139
+    },
+    { map: map }
+  );
   const icons = {
     popcorn: {
       url: "cut.png",
       scaledSize: new google.maps.Size(60, 60)
     },
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
-    toilet: {
-      url: "toilet.PNG",
-      scaledSize: new google.maps.Size(60, 60)
-    },
+    toilet:  "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
   };
   const markerObjects = markers.map(point => {
     const marker = new google.maps.Marker({
