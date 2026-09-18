@@ -19,16 +19,12 @@
     </style>
   </head>
   <body>
+    <div id="popcorn-menu">
+  <button id="popcorn-btn">
+    <img src="cut.png" style="width:30px; height:30px; vertical-align:middle;">
+  </button>
   <div id="popcorn-list" style="display:none;"></div>
 </div>
-
-  <!-- フィルター -->
-  <div id="filter">
-  <button id="popcornBtn">🍿 ポップコーン</button>
-  <div id="popcornMenu"></div>
-  </div>
-
-
     <div id="map"></div>
     <script src="markers.js"></script>
     <script src="script.js"></script>
@@ -126,8 +122,6 @@ map.data.setStyle({
 });
         
       }
-      #filter { position: absolute; top: 10px; left: 10px; z-index: 10; } #popcornBtn { padding: 10px 15px; font-size: 16px; background: white; border: 1px solid #999; border-radius: 8px; cursor: pointer; } #popcornMenu { display: none; margin-top: 5px; background: white; border-radius: 8px; padding: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); } #popcornMenu button { display: block; width: 150px; padding: 8px; margin: 3px; background: white; border: 1px solid #ddd; cursor: pointer; }
-      
     </script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
   </body>
