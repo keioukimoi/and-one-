@@ -17,7 +17,10 @@ function initializeMarkers(mapInstance) {
       scaledSize: new google.maps.Size(60, 60)
     },
     food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
-    toilet:  "toilet.png",
+    toilet: {
+      url: "toilet.png",
+      scaledSize: new google.maps.Size(40, 40)
+    },
   };
   const markerObjects = markers.map(point => {
     const marker = new google.maps.Marker({
