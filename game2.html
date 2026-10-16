@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>少数派を探せ！</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: 'Hiragino Sans', 'Meiryo', sans-serif; }
+  body {
+    background: linear-gradient(160deg, #1a1a3e 0%, #0f3460 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+  }
+  #app { width: 100%; max-width: 420px; text-align: center; }
+
+  .screen { display: none; animation: fade 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity:1; transform:none;} }
+
+  h1 { font-size: 26px; color: #ffd700; margin-bottom: 8px; letter-spacing: 1px; }
+  .sub { font-size: 13px; color: #89b4fa; margin-bottom: 28px; line-height: 1.7; }
+
+  .card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 28px 22px;
+    margin-bottom: 20px;
+  }
+
+  button {
+    font-family: inherit; font-weight: bold; cursor: pointer;
+    border: none; border-radius: 16px; transition: transform 0.1s, opacity 0.2s;
+  }
+  button:active { transform: scale(0.96); }
+
+  .btn-main {
+    width: 100%; padding: 18px; font-size: 18px;
+    background: linear-gradient(135deg, #ffd700, #ffb300); color: #1a1a3e;
+    box-shadow: 0 6px 20px rgba(255,215,0,0.3);
+  }
+
+  .num-row { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+  .num-btn {
+    width: 64px; height: 64px; font-size: 24px;
+    background: rgba(255,255,255,0.1); color: #fff;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .num-btn.selected { background: #ffd700; color: #1a1a3e; border-color: #ffd700; }
+
+  .question-text { font-size: 22px; font-weight: bold; line-height: 1.6; margin: 10px 0 6px; }
+  .q-counter { font-size: 13px; color: #89b4fa; margin-bottom: 20px; }
+
+  .answer-row { display: flex; gap: 14px; margin-top: 10px; }
+  .btn-yes, .btn-no {
+    flex: 1; padding: 26px 0; font-size: 22px; color: #fff;
+  }
+  .btn-yes { background: linear-gradient(135deg,#43c66a,#2e9e5b); }
+  .btn-no  { background: linear-gradient(135deg, #ff6b6b, #e94e4e); }
+
+  .pass-name { font-size: 30px; color: #ffd700; font-weight: bold; margin: 18px 0; }
+  .hint { font-size: 13px; color: #89b4fa; margin-top: 16px; line-height: 1.7; }
+
+  .result-big { font-size: 30px; font-weight: bold; color: #ffd700; margin: 14px 0; line-height: 1.5; }
+  .result-sub { font-size: 16px; line-height: 1.8; margin: 10px 0; }
+
+  .emoji { font-size: 52px; margin-bottom: 10px; }
+  .pill {
+    display:inline-block; background: rgba(255,255,255,0.12);
+    padding: 6px 16px; border-radius: 20px; font-size: 14px; margin: 4px;
+  }
+  .small-btn {
+    margin-top: 14px; padding: 12px 20px; font-size: 14px;
+    background: rgba(255,255,255,0.12); color: #fff;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- スタート -->
+  <div class="screen active" id="screen-start">
+    <div class="emoji">🎢</div>
+    <h1>少数派を探せ！</h1>
+    <p class="sub">お題に「はい / いいえ」で答えて<br>少数派になった人を会話で当てるゲーム<br>待ち時間のおともにどうぞ</p>
+    <div class="card">
+      <p style="font-size:15px; margin-bottom:6px;">プレイ人数を選んでね</p>
+      <div class="num-row" id="num-row"></div>
+    </div>
+    <button class="btn-main" id="start-btn" style="opacity:0.4;" disabled>スタート</button>
+  </div>
+
+  <!-- パス画面 -->
+  <div class="screen" id="screen-pass">
+    <div class="emoji">📱➡️</div>
+    <h1>次の人へ</h1>
+    <div class="card">
+      <p style="font-size:15px;">スマホを</p>
+      <div class="pass-name" id="pass-name">プレイヤー1</div>
+      <p style="font-size:15px;">に渡してください</p>
+    </div>
+    <button class="btn-main" id="pass-btn">準備OK・問題を見る</button>
+  </div>
+
+  <!-- 質問画面 -->
+  <div class="screen" id="screen-question">
+    <p class="q-counter" id="q-counter">プレイヤー1 ・ 1問目</p>
+    <div class="card">
+      <p class="question-text" id="question-text">お題</p>
+    </div>
+    <div class="answer-row">
+      <button class="btn-yes" id="btn-yes">はい</button>
+      <button class="btn-no" id="btn-no">いいえ</button>
+    </div>
+    <p class="hint">他の人に見られないように答えてね</p>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="screen" id="screen-result">
+    <div class="emoji" id="result-emoji">🔍</div>
+    <p class="q-counter" id="result-q"></p>
+    <div class="card">
+      <div class="result-big" id="result-big"></div>
+      <div class="result-sub" id="result-sub"></div>
+    </div>
+    <button class="btn-main" id="next-btn">次のお題へ</button>
+    <br>
+    <button class="small-btn" id="reveal-btn">答えを見る（デバッグ用）</button>
+    <p class="hint" id="reveal-area" style="display:none;"></p>
+  </div>
+
+</div>
+
+<script>
+// ===== お題データ =====
+const QUESTIONS = [
+  "ディズニーに行く時はみんなの為に除菌シートを持っていく",
+  "2時間以上アトラクションを待つのは嫌だ",
+  "タワーオブテラーは怖い",
+  "シンドバッドに乗ると寝そうになる",
+  "正直ビッグサンダーマウンテンで手を振ってくれる人がいたらアガる"
+];
+
+// ===== 状態 =====
+let playerCount = 0;
+let currentPlayer = 0;   // 0-indexed
+let questionIndex = 0;
+let answers = [];        // この問題の回答 ["yes","no",...]
+
+// ===== 画面切り替え =====
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// ===== 人数選択 =====
+const numRow = document.getElementById("num-row");
+[3,4,5,6].forEach(n => {
+  const b = document.createElement("button");
+  b.className = "num-btn";
+  b.textContent = n;
+  b.onclick = () => {
+    document.querySelectorAll(".num-btn").forEach(x => x.classList.remove("selected"));
+    b.classList.add("selected");
+    playerCount = n;
+    const sb = document.getElementById("start-btn");
+    sb.disabled = false;
+    sb.style.opacity = "1";
+  };
+  numRow.appendChild(b);
+});
+
+// ===== スタート =====
+document.getElementById("start-btn").onclick = () => {
+  questionIndex = 0;
+  startQuestion();
+};
+
+// ===== 1問スタート =====
+function startQuestion() {
+  currentPlayer = 0;
+  answers = [];
+  goPass();
+}
+
+// ===== パス画面 =====
+function goPass() {
+  document.getElementById("pass-name").textContent = "プレイヤー" + (currentPlayer + 1);
+  show("screen-pass");
+}
+document.getElementById("pass-btn").onclick = () => {
+  document.getElementById("q-counter").textContent =
+    "プレイヤー" + (currentPlayer + 1) + " ・ " + (questionIndex + 1) + "問目";
+  document.getElementById("question-text").textContent = QUESTIONS[questionIndex];
+  show("screen-question");
+};
+
+// ===== 回答 =====
+document.getElementById("btn-yes").onclick = () => answer("yes");
+document.getElementById("btn-no").onclick  = () => answer("no");
+
+function answer(val) {
+  answers.push(val);
+  currentPlayer++;
+  if (currentPlayer < playerCount) {
+    goPass();
+  } else {
+    showResult();
+  }
+}
+
+// ===== 結果判定 =====
+function showResult() {
+  const yes = answers.filter(a => a === "yes").length;
+  const no  = answers.length - yes;
+
+  let big, sub, emoji;
+  const resultQ = document.getElementById("result-q");
+  resultQ.textContent = (questionIndex + 1) + "問目：" + QUESTIONS[questionIndex];
+
+  if (yes === no) {
+    // 同数（割れ）
+    emoji = "⚖️";
+    big = "ちょうど半分！";
+    sub = "意見がきれいに分かれました。<br>少数派なし。次のお題へ！";
+  } else {
+    const minority = yes < no ? "はい" : "いいえ";
+    const minCount = Math.min(yes, no);
+    emoji = "🔍";
+    if (minCount === 1) {
+      big = "「" + minority + "」が1人！";
+      sub = "少数派は1人だけ。<br>話し合って<b>「" + minority + "」と答えた人</b>を当てよう！";
+    } else {
+      big = "「" + minority + "」が" + minCount + "人";
+      sub = "少数派は" + minCount + "人。<br>誰が「" + minority + "」側か話し合おう！";
+    }
+  }
+
+  document.getElementById("result-emoji").textContent = emoji;
+  document.getElementById("result-big").innerHTML = big;
+  document.getElementById("result-sub").innerHTML = sub;
+
+  // デバッグ用の答え
+  const revealArea = document.getElementById("reveal-area");
+  revealArea.style.display = "none";
+  revealArea.innerHTML = answers.map((a,i) =>
+    "プレイヤー" + (i+1) + "：" + (a === "yes" ? "はい" : "いいえ")
+  ).join("<br>");
+
+  show("screen-result");
+}
+
+document.getElementById("reveal-btn").onclick = () => {
+  const r = document.getElementById("reveal-area");
+  r.style.display = r.style.display === "none" ? "block" : "none";
+};
+
+// ===== 次のお題 =====
+document.getElementById("next-btn").onclick = () => {
+  questionIndex = (questionIndex + 1) % QUESTIONS.length;  // 5問出し切ったら1に戻る
+  startQuestion();
+};
+</script>
+</body>
+</html>
