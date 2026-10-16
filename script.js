@@ -56,12 +56,7 @@ function initializeMarkers(mapInstance) {
         marker.setVisible(false);
       }
 
-      // ↓ ここを追加：ポップコーンだけサイズを動的に変更
-      if (category === "popcorn") {
-        marker.setIcon({
-          url: "cut.png",
-          scaledSize: new google.maps.Size(popcornSize, popcornSize),
-          anchor: new google.maps.Point(popcornSize / 2, popcornSize)
+      
         });
       }
     });
