@@ -95,6 +95,15 @@
         east: 139.893391,
         west: 139.868139
       };
+        
+                // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
+        const maskBounds = {
+          north: outerBounds.north + 0.05,
+          south: outerBounds.south - 0.05,
+          east:  outerBounds.east  + 0.05,
+          west:  outerBounds.west  - 0.05
+        };
+
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 16.5,
           center: center,
