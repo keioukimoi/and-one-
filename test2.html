@@ -106,9 +106,8 @@
               east: 139.893391,
               west: 139.868139
             },
-            strictBounds: true
+            strictBounds: false
           },
-          minZoom: 16.5,
           maxZoom: 19,
           isFractionalZoomEnabled: true,
           clickableIcons: false,
@@ -120,6 +119,22 @@
           ]
         });
         initializeMarkers(map);
+                initializeMarkers(map);
+
+        // ===== パーク全体が画面に入るように合わせる =====
+        const parkBounds = { north: north, south: south, east: east, west: west };
+
+        function fitPark() {
+          map.setOptions({ minZoom: null });          // 一旦ズーム制限を外す
+          map.fitBounds(parkBounds, 20);              // パークが収まるズームに合わせる（余白20px）
+          google.maps.event.addListenerOnce(map, "idle", function () {
+            map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
+          });
+        }
+
+        fitPark();                                    // 最初に1回
+        window.addEventListener("resize", fitPark);   // 画面サイズや倍率が変わったらもう1回
+        
             // ===== GeoJSONを直接流し込んで中抜きマスクを作る（Dataレイヤー方式） =====
 
 const maskGeoJson = {
