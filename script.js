@@ -50,11 +50,6 @@ function initializeMarkers(mapInstance) {
     popcornSize = Math.max(35, Math.min(80, popcornSize));  // 40〜80の範囲に収める
 
     markerObjects.forEach(({ marker, category }) => {
-      if (zoom >= 16.5) {
-        marker.setVisible(true);
-      } else {
-        marker.setVisible(false);
-      }
 
       // ↓ ここを追加：ポップコーンだけサイズを動的に変更
       if (category === "popcorn") {
