@@ -6,7 +6,7 @@
     <title>a揚gemann</title>
     <style>
       #map { height: 100%; width: 100%; }
-      html, body { height: 100%; margin: 0; padding: 0; }
+      html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
       #popcorn-btn {
         padding: 8px;
         border: none;
@@ -18,7 +18,17 @@
       #popcorn-btn img {
         pointer-events: none;
       }
-      #gameIcon {
+      #gameBtn {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 10;
+        padding: 0;
+        border: none;
+        background: none;
+        cursor: pointer;
+      }
+      gameIcon {
       width: 90px;  /* アイコンの大きさ */
       height: auto;
       display: block;
