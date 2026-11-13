@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!-- htmlファイルという宣言 -->
+
+<html lang="ja">
+<!-- このページは日本語という意味 -->
+
+<head>
+<!-- ここからは設定（画面には表示されない） -->
+
+  <meta charset="UTF-8">
+  <!-- 文字を日本語方式で読ませる。これがないと文字化けする -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- スマホの画面サイズに合わせる設定 -->
+
+  <title>少数派を探せ！</title>
+  <!-- ブラウザのタブに出る名前 -->
+
+  <style>
+    /* ===== 見た目の設定（最小限） ===== */
+
+    /* 表示する画面。最初は全部隠しておく（display:none＝非表示） */
+    .screen { display: none; }
+
+    /* activeという印がついた画面だけ表示する */
+    .screen.active { display: block; }
+
+    /* 選んだ人数ボタンに色をつけるための印 */
+    .selected { background: gold; }
+  </style>
+
+</head>
+
+<body>
+<!-- ここから画面に表示される部分 -->
+
+  <!-- タイトル画面に戻るボタン。押すとhyousi.htmlへ飛ぶ -->
+  <button onclick="location.href='hyousi.html'">戻る</button>
+
+
+  <!-- ========================================= -->
+  <!-- 画面①：人数を選ぶ画面 -->
+  <!-- ========================================= -->
+  <!-- class="screen active" なので、最初はこの画面が表示される -->
+  <div class="screen active" id="screen-start">
+    <h1>少数派を探せ！</h1>
+    <p>お題に「はい / いいえ」で答えて、少数派の人を会話で当てるゲーム</p>
+
+    <p>プレイ人数を選んでね</p>
+    <!-- 人数ボタンを入れる場所。中身はJavaScriptで作る -->
+    <div id="num-row"></div>
+
+    <!-- スタートボタン。最初は押せない（disabled）。人数を選ぶと押せるようになる -->
+    <button id="start-btn" disabled>スタート</button>
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- 画面②：次の人にスマホを渡す画面 -->
+  <!-- ========================================= -->
+  <div class="screen" id="screen-pass">
+    <h1>次の人へ</h1>
+    <p>スマホを <span id="pass-name">プレイヤー1</span> に渡してください</p>
+    <!-- span＝文字の一部だけを後から書き換えるための入れ物 -->
+
+    <button id="pass-btn">準備OK・問題を見る</button>
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- 画面③：質問に答える画面 -->
+  <!-- ========================================= -->
+  <div class="screen" id="screen-question">
+    <!-- 今誰の番で、何問目かを表示する場所 -->
+    <p id="q-counter">プレイヤー1 ・ 1問目</p>
+
+    <!-- お題を表示する場所 -->
+    <h2 id="question-text">お題</h2>
+
+    <!-- 回答ボタン -->
+    <button id="btn-yes">はい</button>
+    <button id="btn-no">いいえ</button>
+
+    <p>他の人に見られないように答えてね</p>
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- 画面④：結果発表の画面 -->
+  <!-- ========================================= -->
+  <div class="screen" id="screen-result">
+    <!-- 何問目だったかを表示 -->
+    <p id="result-q"></p>
+
+    <!-- 結果の大きい文字（例：「いいえ」が1人！） -->
+    <h2 id="result-big"></h2>
+
+    <!-- 結果の説明文 -->
+    <p id="result-sub"></p>
+
+    <!-- 次のお題へ進むボタン -->
+    <button id="next-btn">次のお題へ</button>
+
+    <!-- 答え合わせボタン（誰がどう答えたか見られる） -->
+    <button id="reveal-btn">答えを見る</button>
+    <!-- 答え合わせの中身。最初は隠しておく -->
+    <p id="reveal-area" style="display:none;"></p>
+  </div>
+
+
+<script>
+// =========================================================
+// ここからJavaScript（ゲームの動き）
+// =========================================================
+
+
+// ===== パート1：お題のリスト =====
+// 20個のお題を配列（リスト）にして入れておく。
+const QUESTIONS = [
+  "ディズニーに行く時はみんなの為に除菌シートを持っていく",
+  "2時間以上アトラクションを待つのは嫌だ",
+  "タワーオブテラーは怖い",
+  "シンドバッドに乗ると寝そうになる",
+  "正直ビッグサンダーマウンテンで手を振ってくれる人がいたらアガる",
+  "ホーンテッドマンションは怖い",
+  "スプラッシュマウンテンで濡れるのは嫌",
+  "ソアリン200分待ち耐えられる",
+  "カリブの海賊は最初に乗りたい",
+  "ポップコーンは絶対に食べたい",
+  "正直スターツアーズは面白くない",
+  "ゴーカートがなくなって悲しい",
+  "ウエスタンリバー鉄道は夜に乗りたい",
+  "ジャングルクルーズでお姉さんが来たらテンション上がる",
+  "ディズニーでお酒を飲みたい",
+  "チキンレッグは欠かせない",
+  "喫煙所をもう少し増やしてほしい",
+  "実際トイレの場所わかりにくい",
+  "ランドのでっかい船に乗ったことある",
+  "カヌーに乗ったことある"
+];
+
+
+// ===== パート2：ゲームの状況を覚えておく箱 =====
+// letは「後から中身を変えられる箱」。ゲームが進むと数字が変わる。
+let playerCount = 0;    // プレイ人数（何人で遊ぶか）
+let currentPlayer = 0;  // 今何人目が答えているか（0から数える）
+let questionIndex = 0;  // 今何問目か（0から数える）
+let answers = [];       // この問題のみんなの答えを集める箱（例：["yes","no","yes"]）
+
+
+// ===== パート3：画面を切り替える関数 =====
+// idで指定した画面だけを表示して、他は隠す。
+function show(id) {
+  // まず全部の画面からactive（表示の印）を外す＝全部隠す
+  const screens = document.querySelectorAll(".screen");
+  for (const s of screens) {
+    s.classList.remove("active");
+  }
+  // 指定された画面だけにactiveをつける＝その画面だけ表示
+  document.getElementById(id).classList.add("active");
+}
+
+
+// ===== パート4：人数ボタンを作る =====
+// 3,4,5,6人のボタンを自動で作って画面に並べる。
+const numRow = document.getElementById("num-row");
+
+// [3,4,5,6]を1つずつ取り出して、それぞれボタンを作る
+for (const n of [3, 4, 5, 6]) {
+
+  const btn = document.createElement("button");  // 新しいボタンを作る
+  btn.textContent = n;                           // ボタンに数字を表示（3とか4とか）
+
+  // このボタンが押された時の動き
+  btn.onclick = () => {
+
+    // 一旦、全部の人数ボタンの色（selected）を外す
+    const allBtns = numRow.querySelectorAll("button");
+    for (const b of allBtns) {
+      b.classList.remove("selected");
+    }
+
+    btn.classList.add("selected");  // 押したボタンだけ色をつける
+    playerCount = n;                // 選んだ人数を記録する
+
+    // スタートボタンを押せるようにする
+    document.getElementById("start-btn").disabled = false;
+  };
+
+  numRow.appendChild(btn);  // 作ったボタンを画面に追加する
+}
+
+
+// ===== パート5：スタートボタン =====
+// 押したら1問目を始める。
+document.getElementById("start-btn").onclick = () => {
+  questionIndex = 0;   // 問題を1問目（0番目）に戻す
+  startQuestion();     // 問題スタートの関数を呼ぶ
+};
+
+
+// ===== パート6：1つの問題を始める =====
+function startQuestion() {
+  currentPlayer = 0;   // 答える人を1人目（0番目）に戻す
+  answers = [];        // 答えを集める箱を空にする
+  goPass();            // 「次の人へ」画面を出す
+}
+
+
+// ===== パート7：「次の人へ」画面を出す =====
+function goPass() {
+  // 「プレイヤー〇」の〇の部分を、今の人の番号に書き換える
+  // currentPlayerは0から数えるので、+1して「1人目」と表示する
+  document.getElementById("pass-name").textContent = "プレイヤー" + (currentPlayer + 1);
+  show("screen-pass");  // パス画面を表示
+}
+
+
+// ===== パート8：「問題を見る」ボタン =====
+// パス画面で押すと、質問画面に進む。
+document.getElementById("pass-btn").onclick = () => {
+
+  // 「プレイヤー〇 ・ 〇問目」の表示を作る
+  document.getElementById("q-counter").textContent =
+    "プレイヤー" + (currentPlayer + 1) + " ・ " + (questionIndex + 1) + "問目";
+
+  // 今の問題文を表示する（QUESTIONSリストからquestionIndex番目を取り出す）
+  document.getElementById("question-text").textContent = QUESTIONS[questionIndex];
+
+  show("screen-question");  // 質問画面を表示
+};
+
+
+// ===== パート9：「はい」「いいえ」ボタン =====
+// 押したらanswer関数に答えを渡す。
+document.getElementById("btn-yes").onclick = () => answer("yes");
+document.getElementById("btn-no").onclick  = () => answer("no");
+
+
+// ===== パート10：答えを記録して次の人へ =====
+function answer(val) {
+  answers.push(val);   // 答えを箱に追加する（pushは「後ろに足す」）
+  currentPlayer++;     // 次の人の番号へ（+1する）
+
+  // まだ答えていない人がいるか確認
+  if (currentPlayer < playerCount) {
+    goPass();          // まだいる → 次の人へパス
+  } else {
+    showResult();      // 全員答えた → 結果発表へ
+  }
+}
+
+
+// ===== パート11：結果を判定して表示する =====
+function showResult() {
+
+  // 「はい」の数を数える。filterで"yes"だけ取り出して、lengthで個数を数える
+  const yes = answers.filter(a => a === "yes").length;
+  // 「いいえ」の数は、全体から「はい」を引けば分かる
+  const no  = answers.length - yes;
+
+  // 結果の文章を入れる箱を用意
+  let big;   // 大きい文字
+  let sub;   // 説明文
+
+  // 何問目だったかを表示
+  document.getElementById("result-q").textContent =
+    (questionIndex + 1) + "問目：" + QUESTIONS[questionIndex];
+
+  // --- 判定スタート ---
+
+  if (yes === 0 || no === 0) {
+    // 全員が同じ答え（はい0人、またはいいえ0人）
+    big = "全員いっしょ！";
+    sub = "みんな同じ答えでした。少数派なし。次のお題へ！";
+
+  } else if (yes === no) {
+    // ちょうど半分に分かれた（例：2対2）
+    big = "ちょうど半分！";
+    sub = "意見がきれいに分かれました。少数派なし。次のお題へ！";
+
+  } else {
+    // 少数派がいる（3対1、3対2など）
+
+    // 数が少ない方が少数派。はいが少なければ少数派は「はい」
+    const minority = yes < no ? "はい" : "いいえ";
+    // 少数派の人数（小さい方の数）
+    const minCount = Math.min(yes, no);
+
+    if (minCount === 1) {
+      // 少数派が1人だけ
+      big = "「" + minority + "」が1人！";
+      sub = "話し合って「" + minority + "」と答えた人を当てよう！";
+    } else {
+      // 少数派が2人以上
+      big = "「" + minority + "」が" + minCount + "人";
+      sub = "誰が「" + minority + "」側か話し合おう！";
+    }
+  }
+
+  // 判定した文章を画面に表示する
+  document.getElementById("result-big").textContent = big;
+  document.getElementById("result-sub").textContent = sub;
+
+  // --- 答え合わせの中身を準備（最初は隠れている） ---
+  const revealArea = document.getElementById("reveal-area");
+  revealArea.style.display = "none";  // 一旦隠す
+
+  // 「プレイヤー1：はい」のような文章を作る
+  let revealText = "";
+  for (let i = 0; i < answers.length; i++) {
+    const kotae = answers[i] === "yes" ? "はい" : "いいえ";
+    revealText += "プレイヤー" + (i + 1) + "：" + kotae + "\n";
+  }
+  revealArea.textContent = revealText;
+
+  show("screen-result");  // 結果画面を表示
+}
+
+
+// ===== パート12：「答えを見る」ボタン =====
+// 押すたびに、答え合わせを表示/非表示で切り替える。
+document.getElementById("reveal-btn").onclick = () => {
+  const r = document.getElementById("reveal-area");
+  // 今隠れていたら表示、表示されていたら隠す
+  if (r.style.display === "none") {
+    r.style.display = "block";
+  } else {
+    r.style.display = "none";
+  }
+};
+
+
+// ===== パート13：「次のお題へ」ボタン =====
+document.getElementById("next-btn").onclick = () => {
+  // 次の問題へ進む。
+  // %（あまり）を使うと、最後まで行ったら0に戻る（最初のお題に戻る）
+  questionIndex = (questionIndex + 1) % QUESTIONS.length;
+  startQuestion();  // 新しい問題をスタート
+};
+
+</script>
+
+</body>
+</html>
