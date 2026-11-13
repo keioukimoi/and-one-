@@ -8,7 +8,6 @@
   <style>
     /* ===== 全体 ===== */
     :root {
-      /* 画面のフチ（スマホのノッチや丸角）を避けるための余白。PCでは0になる */
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -19,7 +18,6 @@
       padding: 0;
       overflow: hidden;
       font-family: 'Hiragino Sans', 'Meiryo', system-ui, sans-serif;
-      /* 文字が指で選択されないように（地図アプリらしい操作感にする） */
       -webkit-user-select: none;
       user-select: none;
     }
@@ -27,25 +25,23 @@
     #map {
       height: 100%;
       width: 100%;
-      background: #eae6dd;  /* 地図の読み込み中に見える下地の色 */
+      background: #eae6dd;
     }
 
     /* ===== 画面上に浮かぶUIの共通の見た目 ===== */
-    /* すりガラス風の白い円形ボタン。地図の上に浮いて見えるようにする */
     .floating {
       position: absolute;
       z-index: 10;
       background: rgba(255, 255, 255, 0.92);
-      -webkit-backdrop-filter: blur(12px);  /* 背景をぼかす（すりガラス効果） */
+      -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
       border: none;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18),
                   0 0 0 0.5px rgba(0, 0, 0, 0.04);
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;  /* タップ時の青い枠を消す */
+      -webkit-tap-highlight-color: transparent;
       transition: transform 0.12s ease, background 0.2s ease;
     }
-    /* 押した瞬間に少し沈む（押した感を出す） */
     .floating:active {
       transform: scale(0.94);
       background: rgba(245, 245, 245, 0.95);
@@ -55,127 +51,155 @@
     #backBtn {
       top: calc(12px + var(--safe-top));
       left: 12px;
-      width: 46px;
-      height: 46px;
+      width: 46px; height: 46px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       color: #1a1a2e;
     }
-    /* 戻る矢印の絵（SVGという図形の描き方で矢印を描いている） */
-    #backBtn svg {
-      width: 22px;
-      height: 22px;
-    }
+    #backBtn svg { width: 22px; height: 22px; }
 
     /* ===== タイトルの帯（上部中央） ===== */
-    /* 今どこのマップか分かるように、そっと置くラベル */
     #title-pill {
       top: calc(14px + var(--safe-top));
       left: 50%;
       transform: translateX(-50%);
       padding: 9px 18px;
       border-radius: 20px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #1a1a2e;
-      letter-spacing: 0.02em;
-      pointer-events: none;  /* ラベルなので押せなくてよい（地図操作の邪魔をしない） */
-      display: flex;
-      align-items: center;
-      gap: 7px;
+      font-size: 14px; font-weight: 700;
+      color: #1a1a2e; letter-spacing: 0.02em;
+      pointer-events: none;
+      display: flex; align-items: center; gap: 7px;
     }
     #title-pill .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #e8491d;  /* ディズニーらしい赤のアクセント */
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #e8491d;
     }
 
     /* ===== ズームボタン（右下） ===== */
-    /* プラスとマイナスを縦に並べた、親指で押しやすいボタン */
     #zoom-ctrl {
       right: 14px;
       bottom: calc(24px + var(--safe-bottom));
-      width: 46px;
-      border-radius: 23px;
+      width: 46px; border-radius: 23px;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
     }
     .zoom-btn {
-      width: 46px;
-      height: 46px;
-      border: none;
-      background: transparent;
-      font-size: 24px;
-      font-weight: 300;
-      color: #1a1a2e;
+      width: 46px; height: 46px;
+      border: none; background: transparent;
+      font-size: 24px; font-weight: 300; color: #1a1a2e;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s ease;
     }
     .zoom-btn:active { background: rgba(0, 0, 0, 0.06); }
-    /* プラスとマイナスの間に薄い仕切り線 */
-    .zoom-divider {
-      height: 0.5px;
-      background: rgba(0, 0, 0, 0.12);
-      margin: 0 8px;
+    .zoom-divider { height: 0.5px; background: rgba(0, 0, 0, 0.12); margin: 0 8px; }
+
+
+    /* ======================================================= */
+    /* ★ ポップアップ（マーカーをタップした時の表示）のデザイン   */
+    /* ======================================================= */
+
+    /* Googleの標準の白い吹き出しの「ガワ」を透明にして自分のデザインに差し替える */
+    .gm-style .gm-style-iw-c {
+      padding: 0 !important;             /* 中の余白をなくす */
+      border-radius: 18px !important;    /* 角を丸く */
+      box-shadow: 0 8px 28px rgba(0,0,0,0.22) !important;
+      overflow: hidden;
+    }
+    /* 中身を包むGoogleの入れ物の余白も消す */
+    .gm-style .gm-style-iw-d {
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    /* 吹き出しの下の三角形の色（白のまま自然に見せる） */
+    .gm-style .gm-style-iw-t::after {
+      background: #ffffff !important;
+    }
+    /* 右上の×ボタンを少し内側に寄せて見やすくする */
+    .gm-style .gm-style-iw-c button.gm-ui-hover-effect {
+      top: 6px !important;
+      right: 6px !important;
     }
 
-    /* ===== 現在地ボタン（右下・ズームの上） ===== */
-    #locate-btn {
-      right: 14px;
-      bottom: calc(82px + var(--safe-bottom));
-      width: 46px;
-      height: 46px;
+    /* --- ここからが自分で作るカードの中身 --- */
+
+    /* カード全体：絵文字（左）と情報（右）の横並び */
+    .popup-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      min-width: 190px;
+      max-width: 260px;
+      background: #ffffff;
+    }
+
+    /* 左側の丸い絵文字アイコン */
+    .popup-emoji {
+      flex-shrink: 0;             /* 絵文字は縮まないようにする */
+      width: 52px; height: 52px;
       border-radius: 50%;
+      border: 1.5px solid;        /* 色はJS側でカテゴリごとに指定 */
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #1a1a2e;
+      font-size: 26px;
     }
-    #locate-btn svg { width: 22px; height: 22px; }
+
+    /* 右側の文字情報のまとまり */
+    .popup-body {
+      min-width: 0;               /* 長い名前でもはみ出さないように */
+    }
+
+    /* カテゴリのラベル（「ポップコーン」など）。小さく色付きで */
+    .popup-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+
+    /* 施設の名前（主役なので大きめ・太め） */
+    .popup-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1.3;
+    }
+
+    /* 補足説明（note がある時だけ出る） */
+    .popup-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #667;
+      line-height: 1.5;
+      background: #f4f4f7;
+      border-radius: 8px;
+      padding: 5px 9px;
+    }
   </style>
 </head>
 
 <body>
 
   <!-- ===== 戻るボタン（左上・円形） ===== -->
-  <!-- 押すとタイトル画面(hyousi.html)へ戻る -->
   <button id="backBtn" class="floating" onclick="location.href='hyousi.html'" aria-label="戻る">
-    <!-- 左向きの矢印（SVGで描いた図形） -->
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
       <path d="M15 18l-6-6 6-6"/>
     </svg>
   </button>
 
-  <!-- ===== タイトルの帯（上部中央） ===== -->
+  <!-- ===== タイトルの帯 ===== -->
   <div id="title-pill" class="floating">
     <span class="dot"></span>
     <span>ディズニーランド</span>
   </div>
 
-  <!-- ===== 地図を表示する場所 ===== -->
+  <!-- ===== 地図 ===== -->
   <div id="map"></div>
 
-  <!-- ===== 現在地ボタン（右下） ===== -->
-  <button id="locate-btn" class="floating" onclick="goToCurrentLocation()" aria-label="現在地">
-    <!-- 現在地マーク（SVGで描いた照準のような図形） -->
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="4"/>
-      <line x1="12" y1="2" x2="12" y2="5"/>
-      <line x1="12" y1="19" x2="12" y2="22"/>
-      <line x1="2" y1="12" x2="5" y2="12"/>
-      <line x1="19" y1="12" x2="22" y2="12"/>
-    </svg>
-  </button>
-
-  <!-- ===== ズームボタン（右下・プラス/マイナス） ===== -->
+  <!-- ===== ズームボタン（右下） ===== -->
   <div id="zoom-ctrl" class="floating">
     <button class="zoom-btn" onclick="zoomIn()" aria-label="拡大">+</button>
     <div class="zoom-divider"></div>
@@ -183,18 +207,16 @@
   </div>
 
 
+  <!-- markers.js（データ）と script2.js（処理）を読み込む -->
   <script src="markers.js"></script>
-  <script src="script.js"></script>
+  <script src="script2.js"></script>
 
   <script>
-    // 地図をあとから操作（ズームなど）するために、外からも触れる場所に置いておく
     let mapRef = null;
 
     function initMap() {
 
-      // ==================================================
       // 1. くり抜く部分の点（[経度, 緯度]）
-      // ==================================================
       const holeCoords = [
         [139.8780422, 35.6298653],
         [139.8774042, 35.6312691],
@@ -217,42 +239,25 @@
         [139.8780422, 35.6298653]
       ];
 
-      // ==================================================
       // 2. 上下左右の端を探す
-      // ==================================================
-      let west  = 180;   // 左端：最初はありえないほど右
-      let east  = -180;  // 右端：最初はありえないほど左
-      let south = 90;    // 下端：最初はありえないほど上
-      let north = -90;   // 上端：最初はありえないほど下
-
-      let i = 0;                            // 変数：今見ている点の番号
-      while (i < holeCoords.length) {       // 条件：全部の点を見るまで
-        const lng = holeCoords[i][0];       // 経度（左右）
-        const lat = holeCoords[i][1];       // 緯度（上下）
-
-        if (lng < west)  { west  = lng; }   // もっと左なら更新
-        if (lng > east)  { east  = lng; }   // もっと右なら更新
-        if (lat < south) { south = lat; }   // もっと下なら更新
-        if (lat > north) { north = lat; }   // もっと上なら更新
-
-        i = i + 1;                          // 変化量：次の点へ
+      let west = 180, east = -180, south = 90, north = -90;
+      let i = 0;
+      while (i < holeCoords.length) {
+        const lng = holeCoords[i][0];
+        const lat = holeCoords[i][1];
+        if (lng < west)  { west  = lng; }
+        if (lng > east)  { east  = lng; }
+        if (lat < south) { south = lat; }
+        if (lat > north) { north = lat; }
+        i = i + 1;
       }
-      console.log("north:", north, "south:", south, "west:", west, "east:", east);
 
-      // ==================================================
       // 3. 地図の範囲の設定
-      // ==================================================
       const center = { lat: 35.6326, lng: 139.8806 };
-      // ↓ここから下は今のまま
-
       const outerBounds = {
-        north: 35.637544,
-        south: 35.627657,
-        east:  139.893391,
-        west:  139.868139
+        north: 35.637544, south: 35.627657,
+        east:  139.893391, west: 139.868139
       };
-
-      // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
       const maskBounds = {
         north: outerBounds.north + 0.05,
         south: outerBounds.south - 0.05,
@@ -260,19 +265,15 @@
         west:  outerBounds.west  - 0.05
       };
 
-      // ==================================================
       // 4. 地図を作る
-      // ==================================================
       const map = new google.maps.Map(document.getElementById("map"), {
         zoom: 16.5,
         center: center,
         heading: 180,
         restriction: {
           latLngBounds: {
-            north: 35.637544,
-            south: 35.627657,
-            east:  139.893391,
-            west:  139.868139
+            north: 35.637544, south: 35.627657,
+            east:  139.893391, west: 139.868139
           },
           strictBounds: false
         },
@@ -287,60 +288,43 @@
         ]
       });
 
-      mapRef = map;  // あとでズームボタンから操作できるように覚えておく
-
+      mapRef = map;
       initializeMarkers(map);
 
-      // ==================================================
       // 5. パーク全体が画面に入るように合わせる
-      // ==================================================
       const parkBounds = { north: north, south: south, east: east, west: west };
-
       function fitPark() {
-        map.setOptions({ minZoom: null });            // 一旦ズーム制限を外す
-        map.fitBounds(parkBounds, 20);                // パークが収まるズームに合わせる（余白20px）
+        map.setOptions({ minZoom: null });
+        map.fitBounds(parkBounds, 20);
         google.maps.event.addListenerOnce(map, "idle", function () {
-          map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
+          map.setOptions({ minZoom: map.getZoom() });
         });
       }
+      fitPark();
+      window.addEventListener("resize", fitPark);
 
-      fitPark();                                      // 最初に1回
-      window.addEventListener("resize", fitPark);     // 画面サイズや倍率が変わったらもう1回
-
-      // ==================================================
-      // 6. GeoJSONを直接流し込んで中抜きマスクを作る（Dataレイヤー方式）
-      // ==================================================
+      // 6. 中抜きマスク（パーク外を白く隠す）
       const maskGeoJson = {
         "type": "FeatureCollection",
-        "features": [
-          {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-              "type": "Polygon",
-              "coordinates": [
-                // 1つ目の配列：大外の四角形（★反時計回りに修正：左上→左下→右下→右上→左上）
-                [
-                  [maskBounds.west, maskBounds.north],
-                  [maskBounds.west, maskBounds.south],
-                  [maskBounds.east, maskBounds.south],
-                  [maskBounds.east, maskBounds.north],
-                  [maskBounds.west, maskBounds.north]
-                ],
-
-                // 2つ目の配列：取得したディズニーの18点（★時計回りのデータ）
-                // 2つ目の配列：くり抜き
-                holeCoords
-              ]
-            }
+        "features": [{
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [maskBounds.west, maskBounds.north],
+                [maskBounds.west, maskBounds.south],
+                [maskBounds.east, maskBounds.south],
+                [maskBounds.east, maskBounds.north],
+                [maskBounds.west, maskBounds.north]
+              ],
+              holeCoords
+            ]
           }
-        ]
+        }]
       };
-
-      // 地図にGeoJSONデータを読み込ませる
       map.data.addGeoJson(maskGeoJson);
-
-      // 読み込ませたマスクの見た目を「真っ白」に設定する
       map.data.setStyle({
         fillColor: "#FFFFFF",
         fillOpacity: 1.0,
@@ -350,49 +334,12 @@
       });
     }
 
-    // ==================================================
-    // ズームボタンの動き（自作のプラス/マイナス）
-    // ==================================================
-    // 標準のズームボタンはdisableDefaultUIで消しているので、
-    // 自分で作ったボタンから地図のズームを変える。
-    function zoomIn() {
-      if (!mapRef) return;
-      mapRef.setZoom(mapRef.getZoom() + 0.5);   // 0.5刻みで拡大
-    }
-    function zoomOut() {
-      if (!mapRef) return;
-      mapRef.setZoom(mapRef.getZoom() - 0.5);   // 0.5刻みで縮小
-    }
-
-    // ==================================================
-    // 現在地ボタンの動き
-    // ==================================================
-    // スマホのGPSで今いる場所を取得して、そこへ地図を動かす。
-    function goToCurrentLocation() {
-      if (!mapRef) return;
-
-      // この端末が位置情報に対応しているか確認
-      if (!navigator.geolocation) {
-        alert("お使いの端末では現在地を取得できません");
-        return;
-      }
-
-      // GPSで現在地を聞く
-      navigator.geolocation.getCurrentPosition(
-        function (pos) {
-          // 取得成功 → その場所へ地図を移動
-          const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          mapRef.panTo(here);
-        },
-        function () {
-          // 取得失敗（許可されなかった等）
-          alert("現在地を取得できませんでした。位置情報の許可を確認してください");
-        }
-      );
-    }
+    // ズームボタン（自作のプラス/マイナス）
+    function zoomIn()  { if (mapRef) mapRef.setZoom(mapRef.getZoom() + 0.5); }
+    function zoomOut() { if (mapRef) mapRef.setZoom(mapRef.getZoom() - 0.5); }
   </script>
 
-  <!-- Google Maps本体を読み込む（APIキーは伏せています） -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
+  <!-- Google Maps本体（APIキーは伏せています） -->
+  <script async src="himitu"></script>
 </body>
 </html>
