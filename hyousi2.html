@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ディズニーナビ</title>
+
+  <style>
+    /* ===== 全体 ===== */
+    :root {
+      --gold: #ffd24a;
+      --text: #eef0ff;
+      --sub: #a6abd8;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Meiryo', system-ui, sans-serif;
+      /* 夜のパークをイメージした紺〜紫のグラデーション */
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(120, 90, 220, 0.25), transparent 50%),
+        radial-gradient(ellipse at 85% 90%, rgba(40, 120, 200, 0.25), transparent 50%),
+        linear-gradient(170deg, #16163a 0%, #0f1f40 60%, #0c1530 100%);
+      color: var(--text);
+      min-height: 100%;
+      overflow-x: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: calc(48px + var(--safe-top)) 22px calc(40px + var(--safe-bottom));
+    }
+
+    /* ===== 星（背景の光の粒） ===== */
+    /* 画面の後ろにちりばめる小さな光。魔法感を出す装飾 */
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+      animation: twinkle 3s infinite ease-in-out;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50%      { opacity: 0.9; }
+    }
+
+    .wrap {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== ヘッダー（タイトル） ===== */
+    .header { margin-bottom: 36px; }
+
+    /* お城の絵文字を主役として大きく置く */
+    .castle {
+      font-size: 52px;
+      margin-bottom: 12px;
+      /* ふわっと浮く動き */
+      animation: float 4s infinite ease-in-out;
+      display: inline-block;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .app-name {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .app-name .gold { color: var(--gold); }
+
+    .app-sub {
+      font-size: 14px;
+      color: var(--sub);
+      line-height: 1.6;
+    }
+
+    /* ===== 機能カードの並び ===== */
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    /* 1つの機能カード（リンク） */
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.14s ease, background 0.2s ease;
+    }
+    .card:active { transform: scale(0.97); }
+
+    /* カードの左に、カテゴリ色の光の帯を入れる */
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--accent);
+    }
+
+    /* アイコンの丸 */
+    .card-icon {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-line);
+    }
+
+    .card-text { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--sub);
+      line-height: 1.5;
+    }
+
+    /* 右端の矢印 */
+    .card-arrow {
+      flex-shrink: 0;
+      color: var(--sub);
+      display: flex;
+      align-items: center;
+    }
+    .card-arrow svg { width: 20px; height: 20px; }
+
+    /* --- カテゴリごとの色 --- */
+    /* マップ：青緑 */
+    .card.map {
+      --accent: #2dd4bf;
+      --accent-bg: rgba(45, 212, 191, 0.14);
+      --accent-line: rgba(45, 212, 191, 0.3);
+    }
+    /* ゲーム：赤紫 */
+    .card.game {
+      --accent: #f472b6;
+      --accent-bg: rgba(244, 114, 182, 0.14);
+      --accent-line: rgba(244, 114, 182, 0.3);
+    }
+    /* 予測：金 */
+    .card.yosoku {
+      --accent: #ffd24a;
+      --accent-bg: rgba(255, 210, 74, 0.14);
+      --accent-line: rgba(255, 210, 74, 0.3);
+    }
+
+    /* ===== フッター ===== */
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(166, 171, 216, 0.6);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 星（JavaScriptで散らす） -->
+
+  <div class="wrap">
+
+    <!-- ヘッダー -->
+    <div class="header">
+      <div class="castle">🏰</div>
+      <div class="app-name">ディズニー<span class="gold">ナビ</span></div>
+      <div class="app-sub">パークをもっと快適に。<br>使いたい機能を選んでください</div>
+    </div>
+
+    <!-- 機能メニュー -->
+    <div class="menu">
+
+      <!-- マップ機能 -->
+      <a href="test3.html" class="card map">
+        <div class="card-icon">🗺️</div>
+        <div class="card-text">
+          <div class="card-title">マップを見る</div>
+          <div class="card-desc">トイレ・ポップコーン・フードの場所を地図で確認</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </a>
+
+      <!-- ゲーム機能 -->
+      <a href="game.html" class="card game">
+        <div class="card-icon">🎮</div>
+        <div class="card-text">
+          <div class="card-title">待ち時間ゲーム</div>
+          <div class="card-desc">並んでいる時間を楽しく。少数派を探すパーティゲーム</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </a>
+
+      <!-- 混雑予測 -->
+      <a href="waittime2.html" class="card yosoku">
+        <div class="card-icon">📊</div>
+        <div class="card-text">
+          <div class="card-title">混雑予測</div>
+          <div class="card-desc">天気から美女と野獣の待ち時間を時間帯ごとに予測</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- フッター -->
+    <div class="footer">
+      ※ 学校の授業プロジェクトです。<br>
+      東京ディズニーリゾートおよびオリエンタルランドとは関係ありません。
+    </div>
+
+  </div>
+
+
+<script>
+// ==================================================
+// 背景に星をランダムに散らす（装飾）
+// ==================================================
+// 画面の後ろに、小さな光の粒をいくつか作って配置する。
+const starCount = 40;  // 星の数
+
+for (let i = 0; i < starCount; i++) {
+  const star = document.createElement("div");
+  star.className = "star";
+
+  // 大きさをランダムに（1〜3px）
+  const size = Math.random() * 2 + 1;
+  star.style.width = size + "px";
+  star.style.height = size + "px";
+
+  // 位置をランダムに（画面全体）
+  star.style.left = Math.random() * 100 + "%";
+  star.style.top = Math.random() * 100 + "%";
+
+  // 瞬きのタイミングをバラバラにする
+  star.style.animationDelay = Math.random() * 3 + "s";
+
+  document.body.appendChild(star);
+}
+</script>
+
+</body>
+</html>
