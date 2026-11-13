@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!-- htmlファイルという宣言 -->
+
+<html lang="ja">
+<!-- このページは日本語という意味、これがないと翻訳などができない。 -->
+
+<head>
+<!-- ここからの設定は表示されないが準備する場所 -->
+
+  <meta charset="UTF-8">
+  <!-- 文字を日本語方式で読ませる。UTF-8という方式で数字と文字が結びついてる。これがないと文字化けの原因になる。 -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- スマホの画面サイズにするためのコード。スマホで使われる想定 -->
+
+  <title>待ち時間予測</title>
+  <!-- ブラウザ上の名前指定 -->
+
+</head>
+<!-- 準備が終わった。 -->
+
+<body>
+<!-- 本体、ここから見える部分 -->
+
+  <h1>待ち時間予測です</h1>
+  <!-- headingの略。h1が一番大きい。h2、h3と小さくなる -->
+
+  <p>美女と野獣の待ち時間予測してあげますね</p>
+  <!-- paragraphの略。見出しじゃなくて説明文として使う。 -->
+
+<input type="date" id="dateInput">
+<!-- typeをdateにすると日付を選ぶカレンダーがでる。これは最初に備わっている機能。idは後でjavascriptから呼ぶための名札になる。変数ではなくシール -->
+
+<button onclick="yosoku()">予測する</button>
+<!-- ボタンで、onclickはクリックされたらyosokuという命令を実行するという意味。 -->
+
+<pre id="kekka">ここに結果が出ます</pre>
+<!-- 予測結果を表示する場所。idがkekkaなのでjavascriptでここに結果を書き込む。ボタンを押す前はここに結果が出ますと出て、ボタンが押されると予測結果になる。preにすることで改行がそのまま表示される -->
+
+<script>
+// scriptタグの中にjavascript(動き)を書く。htmlは置くだけ
+// model.jsonの係数を入れておく箱。最初は空。
+let model = null;
+
+// ページが開いた時に、model.jsonを読み込んでmodelに入れておく。
+// こうすればボタンを押すたびに読み込まなくて済む。
+fetch("model.json")
+  .then(response => response.json())
+  .then(data => { model = data; });
+// fetchでmodel.jsonを取ってきて、JSONに変換して、modelに入れる。
+
+async function yosoku() {
+
+  const hiduke = document.getElementById("dateInput").value;
+  // 選んだ日付を取り出す
+
+  document.getElementById("kekka").textContent = "天気を調べています...";
+
+  // ① Open-Meteoから天気を取ってくる（前に作った部分）
+  const url = "https://api.open-meteo.com/v1/forecast"
+    + "?latitude=35.6329&longitude=139.8804"
+    + "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum"
+    + "&timezone=Asia/Tokyo"
+    + "&start_date=" + hiduke
+    + "&end_date=" + hiduke;
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  const saikou = data.daily.temperature_2m_max[0];   // 最高気温
+  const saitei = data.daily.temperature_2m_min[0];   // 最低気温
+  const ame    = data.daily.precipitation_sum[0];    // 降水量
+  const tenkiCode = data.daily.weathercode[0];       // 天気コード
+
+  // ② 天気コードを「曇か雨か」に変換する
+  // weathercodeが51以上なら雨、1〜3なら曇り、それ以外（0）は晴れ。
+  let cloudy = 0;
+  let rainy = 0;
+  if (tenkiCode >= 51) {
+    rainy = 1;          // 雨
+  } else if (tenkiCode >= 1) {
+    cloudy = 1;         // 曇り
+  }
+  // 晴れ（コード0）なら両方0のまま
+
+  // ③ 曜日を判定する
+  // new Date(hiduke)で日付を日付オブジェクトにする。getDay()で曜日番号を取る。
+  // 0=日曜, 6=土曜。
+  const youbi = new Date(hiduke).getDay();
+  let saturday = 0;
+  let sunday = 0;
+  if (youbi === 6) saturday = 1;   // 土曜
+  if (youbi === 0) sunday = 1;     // 日曜
+  // 祝日判定は今は省略（holidayは0のまま）
+  const holiday = 0;
+
+  // ④ 各時間帯ごとに予測を計算する
+  let kekkaText = hiduke + " の予測待ち時間\n";
+
+  // modelの中の時間帯を1つずつ取り出して計算する
+  for (const jikan in model) {
+    const c = model[jikan];   // その時間帯の係数セット
+
+    // さっき手計算でやった式を、そのままコードにする
+    const yosokuBun =
+        c.intercept
+      + c.saturday * saturday
+      + c.sunday * sunday
+      + c.holiday * holiday
+      + c.cloudy * cloudy
+      + c.rainy * rainy
+      + c.max_temp * saikou
+      + c.min_temp * saitei
+      + c.precipitation * ame;
+
+    // 計算結果を文章に足していく。Math.round()で小数を四捨五入。
+    kekkaText += jikan + " → 約" + Math.round(yosokuBun) + "分\n";
+  }
+
+  // ⑤ 結果を表示する
+  document.getElementById("kekka").textContent = kekkaText;
+}
+
+</script>
+</body>
+<!-- 本体が終わり -->
+
+</html>
+<!-- 全体がおしまい -->
