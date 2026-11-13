@@ -1,191 +1,230 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>a揚gemann</title>
-    <style>
-      #map { height: 100%; width: 100%; }
-      html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
-      #popcorn-btn {
-        padding: 8px;
-        border: none;
-        border-radius: 50%;
-        background: white;
-        cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      }
-      #popcorn-btn img {
-        pointer-events: none;
-      }
-      #gameBtn {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        z-index: 10;
-        padding: 0;
-        border: none;
-        background: none;
-        cursor: pointer;
-      }
-      #gameIcon {
-        width: 90px;  /* アイコンの大きさ */
-        height: auto;
-        display: block;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>a揚gemann</title>
+
+  <style>
+    /* ===== 全体 ===== */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
-    </style>
-  </head>
-  <body>
-    <button id="gameBtn" onclick="location.href='game.html'">
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* ===== ポップコーンボタン ===== */
+    #popcorn-btn {
+      padding: 8px;
+      border: none;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #popcorn-btn img {
+      pointer-events: none;
+    }
+
+    /* ===== ゲームボタン（左上） ===== */
+    #gameBtn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    #gameIcon {
+      width: 90px;   /* アイコンの大きさ */
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ゲーム画面へ移動するボタン -->
+  <button id="gameBtn" onclick="location.href='game.html'">
     <img src="game.png" alt="GAME" id="gameIcon" style="width: 90px; height: auto;">
-    </button>
-    <div id="map"></div>
-    <script src="markers.js"></script>
-    <script src="script.js"></script>
-    <script>
-      function initMap() {
-        // くり抜く部分の点（[経度, 緯度]）
-          const holeCoords = [
-            [139.8780422, 35.6298653],
-            [139.8774042, 35.6312691],
-            [139.8770931, 35.6318761],
-            [139.877118,  35.6341748],
-            [139.8777946, 35.6355122],
-            [139.8795214, 35.6361817],
-            [139.8811688, 35.6357622],
-            [139.88224,   35.6353588],
-            [139.8828256, 35.6351491],
-            [139.8838088, 35.6347547],
-            [139.8859195, 35.6330194],
-            [139.886249,  35.6320171],
-            [139.8850008, 35.6312703],
-            [139.884315,  35.6306529],
-            [139.8834162, 35.6303557],
-            [139.8826715, 35.6303006],
-            [139.8806598, 35.6297032],
-            [139.880534,  35.6293023],
-            [139.8780422, 35.6298653]
-          ];
+  </button>
 
-            // ===== 上下左右の端を探す =====
-            let west  = 180;   // 左端：最初はありえないほど右
-            let east  = -180;  // 右端：最初はありえないほど左
-            let south = 90;    // 下端：最初はありえないほど上
-            let north = -90;   // 上端：最初はありえないほど下
+  <!-- 地図を表示する場所 -->
+  <div id="map"></div>
 
-            let i = 0;                          // 変数：今見ている点の番号
-            while (i < holeCoords.length) {     // 条件：全部の点を見るまで
-              const lng = holeCoords[i][0];     // 経度（左右）
-              const lat = holeCoords[i][1];     // 緯度（上下）
+  <script src="markers.js"></script>
+  <script src="script.js"></script>
 
-              if (lng < west)  { west  = lng; } // もっと左なら更新
-              if (lng > east)  { east  = lng; } // もっと右なら更新
-              if (lat < south) { south = lat; } // もっと下なら更新
-              if (lat > north) { north = lat; } // もっと上なら更新
+  <script>
+    function initMap() {
 
-              i = i + 1;                        // 変化量：次の点へ
-            }
-            console.log("north:", north, "south:", south, "west:", west, "east:", east);
+      // ==================================================
+      // 1. くり抜く部分の点（[経度, 緯度]）
+      // ==================================================
+      const holeCoords = [
+        [139.8780422, 35.6298653],
+        [139.8774042, 35.6312691],
+        [139.8770931, 35.6318761],
+        [139.877118,  35.6341748],
+        [139.8777946, 35.6355122],
+        [139.8795214, 35.6361817],
+        [139.8811688, 35.6357622],
+        [139.88224,   35.6353588],
+        [139.8828256, 35.6351491],
+        [139.8838088, 35.6347547],
+        [139.8859195, 35.6330194],
+        [139.886249,  35.6320171],
+        [139.8850008, 35.6312703],
+        [139.884315,  35.6306529],
+        [139.8834162, 35.6303557],
+        [139.8826715, 35.6303006],
+        [139.8806598, 35.6297032],
+        [139.880534,  35.6293023],
+        [139.8780422, 35.6298653]
+      ];
 
-          const center = { lat: 35.6326, lng: 139.8806 };
-          // ↓ここから下は今のまま
-        const outerBounds = {
+      // ==================================================
+      // 2. 上下左右の端を探す
+      // ==================================================
+      let west  = 180;   // 左端：最初はありえないほど右
+      let east  = -180;  // 右端：最初はありえないほど左
+      let south = 90;    // 下端：最初はありえないほど上
+      let north = -90;   // 上端：最初はありえないほど下
+
+      let i = 0;                            // 変数：今見ている点の番号
+      while (i < holeCoords.length) {       // 条件：全部の点を見るまで
+        const lng = holeCoords[i][0];       // 経度（左右）
+        const lat = holeCoords[i][1];       // 緯度（上下）
+
+        if (lng < west)  { west  = lng; }   // もっと左なら更新
+        if (lng > east)  { east  = lng; }   // もっと右なら更新
+        if (lat < south) { south = lat; }   // もっと下なら更新
+        if (lat > north) { north = lat; }   // もっと上なら更新
+
+        i = i + 1;                          // 変化量：次の点へ
+      }
+      console.log("north:", north, "south:", south, "west:", west, "east:", east);
+
+      // ==================================================
+      // 3. 地図の範囲の設定
+      // ==================================================
+      const center = { lat: 35.6326, lng: 139.8806 };
+      // ↓ここから下は今のまま
+
+      const outerBounds = {
         north: 35.637544,
         south: 35.627657,
-        east: 139.893391,
-        west: 139.868139
+        east:  139.893391,
+        west:  139.868139
       };
-        
-                // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
-        const maskBounds = {
-          north: outerBounds.north + 0.05,
-          south: outerBounds.south - 0.05,
-          east:  outerBounds.east  + 0.05,
-          west:  outerBounds.west  - 0.05
-        };
 
-        const map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 16.5,
-          center: center,
-          heading: 180,
-          restriction: {
-            latLngBounds: {
-              north: 35.637544,
-              south: 35.627657,
-              east: 139.893391,
-              west: 139.868139
-            },
-            strictBounds: false
+      // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
+      const maskBounds = {
+        north: outerBounds.north + 0.05,
+        south: outerBounds.south - 0.05,
+        east:  outerBounds.east  + 0.05,
+        west:  outerBounds.west  - 0.05
+      };
+
+      // ==================================================
+      // 4. 地図を作る
+      // ==================================================
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 16.5,
+        center: center,
+        heading: 180,
+        restriction: {
+          latLngBounds: {
+            north: 35.637544,
+            south: 35.627657,
+            east:  139.893391,
+            west:  139.868139
           },
-          maxZoom: 19,
-          isFractionalZoomEnabled: true,
-          clickableIcons: false,
-          disableDefaultUI: true,
-          styles: [
-            { featureType: "poi", stylers: [{ visibility: "off" }] },
-            { featureType: "transit", stylers: [{ visibility: "off" }] },
-            { featureType: "all", elementType: "labels.text", stylers: [{ visibility: "off" }] }
-          ]
-        });
-        initializeMarkers(map);
-
-        // ===== パーク全体が画面に入るように合わせる =====
-        const parkBounds = { north: north, south: south, east: east, west: west };
-
-        function fitPark() {
-          map.setOptions({ minZoom: null });          // 一旦ズーム制限を外す
-          map.fitBounds(parkBounds, 20);              // パークが収まるズームに合わせる（余白20px）
-          google.maps.event.addListenerOnce(map, "idle", function () {
-            map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
-          });
-        }
-
-        fitPark();                                    // 最初に1回
-        window.addEventListener("resize", fitPark);   // 画面サイズや倍率が変わったらもう1回
-        
-            // ===== GeoJSONを直接流し込んで中抜きマスクを作る（Dataレイヤー方式） =====
-
-const maskGeoJson = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          // 1つ目の配列：大外の四角形（★反時計回りに修正：左上→左下→右下→右上→左上）          
-          [
-            [maskBounds.west, maskBounds.north],
-            [maskBounds.west, maskBounds.south],
-            [maskBounds.east, maskBounds.south],
-            [maskBounds.east, maskBounds.north],
-            [maskBounds.west, maskBounds.north]
-          ],
-
-          // 2つ目の配列：取得したディズニーの18点（★時計回りのデータ）
-          // 2つ目の配列：くり抜き
-          holeCoords
+          strictBounds: false
+        },
+        maxZoom: 19,
+        isFractionalZoomEnabled: true,
+        clickableIcons: false,
+        disableDefaultUI: true,
+        styles: [
+          { featureType: "poi",     stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+          { featureType: "all", elementType: "labels.text", stylers: [{ visibility: "off" }] }
         ]
+      });
+
+      initializeMarkers(map);
+
+      // ==================================================
+      // 5. パーク全体が画面に入るように合わせる
+      // ==================================================
+      const parkBounds = { north: north, south: south, east: east, west: west };
+
+      function fitPark() {
+        map.setOptions({ minZoom: null });            // 一旦ズーム制限を外す
+        map.fitBounds(parkBounds, 20);                // パークが収まるズームに合わせる（余白20px）
+        google.maps.event.addListenerOnce(map, "idle", function () {
+          map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
+        });
       }
+
+      fitPark();                                      // 最初に1回
+      window.addEventListener("resize", fitPark);     // 画面サイズや倍率が変わったらもう1回
+
+      // ==================================================
+      // 6. GeoJSONを直接流し込んで中抜きマスクを作る（Dataレイヤー方式）
+      // ==================================================
+      const maskGeoJson = {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                // 1つ目の配列：大外の四角形（★反時計回りに修正：左上→左下→右下→右上→左上）
+                [
+                  [maskBounds.west, maskBounds.north],
+                  [maskBounds.west, maskBounds.south],
+                  [maskBounds.east, maskBounds.south],
+                  [maskBounds.east, maskBounds.north],
+                  [maskBounds.west, maskBounds.north]
+                ],
+
+                // 2つ目の配列：取得したディズニーの18点（★時計回りのデータ）
+                // 2つ目の配列：くり抜き
+                holeCoords
+              ]
+            }
+          }
+        ]
+      };
+
+      // 地図にGeoJSONデータを読み込ませる
+      map.data.addGeoJson(maskGeoJson);
+
+      // 読み込ませたマスクの見た目を「真っ白」に設定する
+      map.data.setStyle({
+        fillColor: "#FFFFFF",
+        fillOpacity: 1.0,
+        strokeColor: "#FFFFFF",
+        strokeWeight: 0,
+        clickable: false
+      });
     }
-  ]
-};
+  </script>
 
-// 地図にGeoJSONデータを読み込ませる
-map.data.addGeoJson(maskGeoJson);
-
-// 読み込ませたマスクの見た目を「真っ白」に設定する
-map.data.setStyle({
-  fillColor: "#FFFFFF",
-  fillOpacity: 1.0,
-  strokeColor: "#FFFFFF",
-  strokeWeight: 0,
-  clickable: false
-});
-        
-      }
-    </script>
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
-  </body>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
+</body>
 </html>
