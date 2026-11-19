@@ -77,6 +77,22 @@
     .weather-chip .wval { font-weight: 700; }
 
     .peak-row { display: flex; gap: 10px; margin-bottom: 18px; }
+    /* 🎯狙い目タブ（1アトラクション表示のときだけ出る・開園直後と閉演直後を除いた日中TOP3） */
+    .aim-row { display: none; flex-direction: column; gap: 9px; margin-bottom: 18px;
+      background: rgba(255,210,74,0.10); border: 1px solid rgba(255,210,74,0.32);
+      border-radius: 14px; padding: 13px 14px; }
+    .aim-head { font-size: 13px; font-weight: 800; color: var(--text); }
+    .aim-head .aim-emoji { font-size: 16px; }
+    .aim-note { font-size: 11px; color: var(--sub); font-weight: 600; line-height: 1.5; }
+    .aim-tabs { display: flex; gap: 8px; }
+    .aim-tab { flex: 1; cursor: pointer; text-align: center; border-radius: 11px; padding: 9px 6px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+      transition: background .14s ease, border-color .14s ease; }
+    .aim-tab:active { transform: scale(0.97); }
+    .aim-tab.selected { background: rgba(255,210,74,0.22); border-color: var(--gold); }
+    .aim-rank { font-size: 10px; font-weight: 700; color: var(--gold); }
+    .aim-time { font-size: 15px; font-weight: 800; color: var(--text); margin: 1px 0; }
+    .aim-wait { font-size: 11px; color: var(--sub); font-weight: 600; }
     .peak-box { flex: 1; border-radius: 14px; padding: 14px; text-align: center;
       background: rgba(255,255,255,0.04); border: 1px solid var(--card-line); }
     .peak-label { font-size: 11px; color: var(--sub); margin-bottom: 4px; }
@@ -156,6 +172,9 @@
         </div>
       </div>
 
+      <!-- 🎯狙い目バナー（JavaScriptで中身を入れる・単体表示のときだけ表示） -->
+      <div class="aim-row" id="aim-row"></div>
+
       <div class="cmp-row" id="cmp-row"></div>
 
       <div class="chart-card">
@@ -205,6 +224,8 @@ let comparePicked = new Set(ATTRACTIONS.map(a => a.key)); // 比較で選ばれ�
 let cache = null;      // { date, weather, day, temps, rains }
 let chartInstance = null;
 let bandCutoff = null; // 受付終了見込みの時刻（分）。nullなら背景を塗らない
+let aimHighlightIndex = null; // 🎯狙い目タブで選ばれた時間帯のindex（グラフに縦線を引く用）。nullなら引かない
+let singleMins = null;        // 単体モードの予測待ち時間。狙い目ハイライトの点を打つのに使う
 
 
 function normalizeModel(data) {
@@ -392,6 +413,62 @@ function renderSingle(key, weather, day, temps, rains, nowLineIndex) {
   document.getElementById("peakB-time").textContent = TIME_SLOTS[minIdx];
   document.getElementById("peakB-min").textContent = mins[minIdx] + " 分";
 
+  // 🎯狙い目TOP3：開園直後(9時台=ロープドロップ)と閉演直後(18〜19時台)を除いた、日中で空く時間
+  singleMins = mins;          // グラフのハイライト用に覚えておく
+  aimHighlightIndex = null;   // 新しい予測なのでハイライトは一旦解除
+  const aimRow = document.getElementById("aim-row");
+
+  // 候補＝10:00〜17:59だけ。待ち時間が少ない順に並べる
+  const cands = [];
+  for (let i = 0; i < mins.length; i++) {
+    if (mins[i] == null) continue;
+    const t = timeToMinutes(TIME_SLOTS[i]);
+    if (t < 10 * 60) continue;    // 開園直後（9時台）を除外
+    if (t >= 18 * 60) continue;   // 閉演直後（18〜19時台）を除外
+    cands.push(i);
+  }
+  cands.sort((a, b) => mins[a] - mins[b]);
+
+  // 上位から拾うが、同じ「時台（時）」は1回だけ → 1位が15:15なら2位に15:45は出さない
+  const top = [], usedHours = new Set();
+  for (const i of cands) {
+    const h = parseInt(TIME_SLOTS[i].split(":")[0]);
+    if (usedHours.has(h)) continue;
+    usedHours.add(h); top.push(i);
+    if (top.length === 3) break;
+  }
+
+  if (top.length === 0) {
+    aimRow.style.display = "none";
+  } else {
+    aimRow.innerHTML = `
+      <div class="aim-head"><span class="aim-emoji">🎯</span> 狙い目の時間（タップでグラフに表示）</div>
+      <div class="aim-note">※18〜19時台は閉演直後なので空きます。それを除いた日中で空いてそうな時間のTOP${top.length}です。</div>
+      <div class="aim-tabs" id="aim-tabs"></div>`;
+    const tabsWrap = aimRow.querySelector("#aim-tabs");
+    const rankLabel = ["1位", "2位", "3位"];
+    top.forEach((idx, r) => {
+      const tab = document.createElement("div");
+      tab.className = "aim-tab";
+      tab.innerHTML = `<div class="aim-rank">${rankLabel[r]}</div>
+        <div class="aim-time">${TIME_SLOTS[idx]}</div>
+        <div class="aim-wait">約${mins[idx]}分</div>`;
+      tab.onclick = () => {
+        if (aimHighlightIndex === idx) {          // もう一度押したら解除
+          aimHighlightIndex = null;
+          tab.classList.remove("selected");
+        } else {
+          aimHighlightIndex = idx;
+          tabsWrap.querySelectorAll(".aim-tab").forEach(e => e.classList.remove("selected"));
+          tab.classList.add("selected");
+        }
+        if (chartInstance) chartInstance.update();  // グラフを引き直して縦線を反映
+      };
+      tabsWrap.appendChild(tab);
+    });
+    aimRow.style.display = "flex";
+  }
+
   // 受付終了見込みの逆算（最後の予測待ち時間を使う）
   const lastWait = mins[lastValid(mins)];
   bandCutoff = clampCutoff(CLOSE_MINUTES - lastWait);
@@ -408,8 +485,10 @@ function renderSingle(key, weather, day, temps, rains, nowLineIndex) {
 // ---- 比較モード（選ばれたアトラクションだけ重ねる）----
 function renderCompare(weather, day, temps, rains, nowLineIndex) {
   document.getElementById("peak-row").style.display = "none";
+  document.getElementById("aim-row").style.display = "none";
   document.getElementById("cmp-row").style.display = "flex";
   document.getElementById("list-card").style.display = "none";
+  aimHighlightIndex = null; // 比較モードでは狙い目ハイライトを消す
   bandCutoff = null; // 比較は各アトラクションで締め切りが違うので塗らない
   document.getElementById("band-note").style.display = "none";
 
@@ -514,6 +593,25 @@ function drawChart(waitSeries, temps, rains, nowLineIndex) {
       c.lineWidth = 2; c.strokeStyle = "#ff5a5a"; c.setLineDash([4, 3]); c.stroke(); c.restore();
     }
   };
+  // 🎯狙い目タブで選ばれた時間帯に、金色の縦線＋点を描く
+  const aimLinePlugin = {
+    id: "aimLine",
+    afterDraw(chart) {
+      if (aimHighlightIndex == null) return;
+      const i = aimHighlightIndex, c = chart.ctx, ca = chart.chartArea;
+      const x = chart.scales.x.getPixelForValue(i);
+      c.save();
+      c.beginPath(); c.moveTo(x, ca.top); c.lineTo(x, ca.bottom);
+      c.lineWidth = 2; c.strokeStyle = "#ffd24a"; c.setLineDash([3, 3]); c.stroke();
+      if (singleMins && singleMins[i] != null) {   // 待ち時間の点を金色で打つ
+        const y = chart.scales.yWait.getPixelForValue(singleMins[i]);
+        c.beginPath(); c.setLineDash([]); c.arc(x, y, 5, 0, Math.PI * 2);
+        c.fillStyle = "#ffd24a"; c.fill();
+        c.lineWidth = 2; c.strokeStyle = "#141430"; c.stroke();
+      }
+      c.restore();
+    }
+  };
 
   // 待ち時間・気温・降水量を21:00ぶんまで伸ばす（足りない分はnull）
   const pad = arr => { const a = arr.slice(); while (a.length < DISPLAY_SLOTS.length) a.push(null); return a; };
@@ -548,7 +646,7 @@ function drawChart(waitSeries, temps, rains, nowLineIndex) {
           ticks: { color: "#8b92c4", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }
       }
     },
-    plugins: [bandPlugin, nowLinePlugin]
+    plugins: [bandPlugin, nowLinePlugin, aimLinePlugin]
   });
 }
 
