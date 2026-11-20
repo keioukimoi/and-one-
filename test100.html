@@ -91,6 +91,22 @@
       color: inherit;
     }
 
+        /* ===== アトラクション名の文字 ★追加 ===== */
+    .attrLabel {
+      /* 文字のまわりにふちを付けて、通路の上でも読めるようにする */
+      text-shadow:
+        -1px -1px 0 #FFFFFF,  1px -1px 0 #FFFFFF,
+        -1px  1px 0 #FFFFFF,  1px  1px 0 #FFFFFF;
+    }
+ 
+    @media (prefers-color-scheme: dark) {
+      .attrLabel {
+        text-shadow:
+          -1px -1px 0 #1A1E2C,  1px -1px 0 #1A1E2C,
+          -1px  1px 0 #1A1E2C,  1px  1px 0 #1A1E2C;
+      }
+    }
+
     /* ===== ダークモードのときの見た目 ★追加 ===== */
     @media (prefers-color-scheme: dark) {
       #followBtn {
@@ -363,6 +379,101 @@
 
       styleWalkways();                                      // 最初に1回
       map.addListener("zoom_changed", styleWalkways);       // ズームが変わるたびに太さを更新
+ 
+      // ==================================================
+      // 6.6 アトラクション名を自分で表示する（OSMのデータ）★追加
+      //     マーカーの文字として置くので、通路やマスクより上に表示される
+      // ==================================================
+      const LABEL_MIN_ZOOM = 17;    // このズーム以上のときだけ文字を出す（ごちゃつき防止）
+ 
+      let labelColor = "#5A4632";              // ライトモード：こげ茶
+      if (isDark) { labelColor = "#F2E6CC"; }  // ダークモード：クリーム色
+ 
+      const attrMarkers = [];                  // 作った文字マーカーをためておく箱
+ 
+      // ある点がパークの形（holeCoords）の内側にあるかを調べる
+      // 点から右に線をのばして、パークの辺と何回交わるかを数える（奇数なら内側）
+      function isInsideHole(lat, lng) {
+        let inside = false;
+        let i = 0;                             // 変数：今見ている辺の始点
+        let j = holeCoords.length - 1;         // 変数：その1つ前の点
+        while (i < holeCoords.length) {        // 条件：全部の辺を見るまで
+          const xi = holeCoords[i][0], yi = holeCoords[i][1];
+          const xj = holeCoords[j][0], yj = holeCoords[j][1];
+ 
+          const crosses = ((yi > lat) !== (yj > lat)) &&
+                          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+          if (crosses) { inside = !inside; }
+ 
+          j = i;                               // 変化量：次の辺へ
+          i = i + 1;
+        }
+        return inside;
+      }
+ 
+      // ズームに合わせて文字を出したり消したりする
+      function updateLabelVisibility() {
+        const show = map.getZoom() >= LABEL_MIN_ZOOM;
+        let k = 0;
+        while (k < attrMarkers.length) {
+          attrMarkers[k].setVisible(show);
+          k = k + 1;
+        }
+      }
+ 
+      fetch("attractions.geojson")
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          const usedNames = {};                // 同じ名前を2回出さないための記録
+          const features = data.features;
+ 
+          let n = 0;                           // 変数：今見ているデータの番号
+          while (n < features.length) {        // 条件：全部のデータを見るまで
+            const f = features[n];
+            n = n + 1;                         // 変化量：次のデータへ（continueしても進むように先に増やす）
+ 
+            if (f.geometry.type !== "Point") { continue; }   // 点以外は使わない
+ 
+            const props = f.properties;
+            let name = props["name:ja"];       // 日本語名があればそれを使う
+            if (!name) { name = props.name; }
+            if (!name) { continue; }           // 名前がなければ飛ばす
+            if (usedNames[name]) { continue; } // もう出した名前なら飛ばす
+ 
+            const lng = f.geometry.coordinates[0];
+            const lat = f.geometry.coordinates[1];
+            if (!isInsideHole(lat, lng)) { continue; }       // パークの外なら飛ばす
+ 
+            usedNames[name] = true;
+ 
+            const m = new google.maps.Marker({
+              map: map,
+              position: { lat: lat, lng: lng },
+              clickable: false,
+              zIndex: 1,                       // トイレなどのアイコンより下にする
+              icon: {                          // アイコンは見えない点にして、文字だけ出す
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 0
+              },
+              label: {
+                text: name,
+                color: labelColor,
+                fontSize: "12px",
+                fontWeight: "bold",
+                className: "attrLabel"
+              }
+            });
+            attrMarkers.push(m);
+          }
+ 
+          updateLabelVisibility();             // 読み込み終わったら1回チェック
+        })
+        .catch(function (err) {
+          console.warn("attractions.geojson が読み込めませんでした:", err);
+        });
+ 
+      map.addListener("zoom_changed", updateLabelVisibility);
+ 
 
       // ==================================================
       // 7. 現在地（青い点）★追加
