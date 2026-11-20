@@ -2,7 +2,7 @@ let map;
 
 // ==================================================
 // カテゴリごとの表示設定（ポップアップで使う）
-// 絵文字・色・カテゴリ名をここでまとめて決めておく。
+// 絵文字・色・カテゴリ名をここでまとめて決めておく
 // ==================================================
 const CATEGORY_INFO = {
   popcorn: { emoji: "🍿", label: "ポップコーン", color: "#e8a01d" },
@@ -10,42 +10,36 @@ const CATEGORY_INFO = {
   toilet:  { emoji: "🚻", label: "トイレ",       color: "#2d8fe8" }
 };
 
+// ==================================================
+// markers.js のデータからアイコンを地図に置く
+// 作ったマーカーの一覧を返す（あとで重なり判定などに使える）
+// ==================================================
 function initializeMarkers(mapInstance) {
   map = mapInstance;
 
-  // 背景のイラスト画像を地図に重ねる（機能そのまま）
-  const overlay = new google.maps.GroundOverlay(
-    "heikei.png",
-    {
-      north: 35.637544,
-      south: 35.627657,
-      east: 139.893391,
-      west: 139.868139
-    },
-    { map: map }
-  );
-
-  // マーカーのアイコン設定（機能そのまま）
+  // カテゴリごとのアイコン
   const icons = {
     popcorn: {
       url: "cut.png",
       scaledSize: new google.maps.Size(60, 60)
     },
-    food:    "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+    food: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     toilet: {
       url: "toilet.png",
       scaledSize: new google.maps.Size(40, 40)
-    },
+    }
   };
 
-  // ==================================================
-  // ポップアップは1つだけ使い回す
-  // マーカーごとに作るのではなく、1つを共有して中身だけ入れ替える。
-  // こうすると「1個開くと前のが自動で閉じる」ので画面がすっきりする。
-  // ==================================================
+  // ポップアップは1つだけ作って使い回す
+  // 中身だけ入れ替えるので、1つ開くと前のが自動で閉じる
   const infoWindow = new google.maps.InfoWindow();
 
-  const markerObjects = markers.map(point => {
+  const markerObjects = [];
+
+  let i = 0;                                  // 変数：今見ているデータの番号
+  while (i < markers.length) {                // 条件：全部のデータを見るまで
+    const point = markers[i];
+
     const marker = new google.maps.Marker({
       position: { lat: point.lat, lng: point.lng },
       map: map,
@@ -53,33 +47,37 @@ function initializeMarkers(mapInstance) {
       icon: icons[point.category]
     });
 
-    // マーカーをタップした時の動き
-    marker.addListener("click", () => {
-      // そのマーカーのカテゴリに合わせたポップアップの中身を作る
+    // タップしたら、その施設のカードを出す
+    marker.addListener("click", function () {
       infoWindow.setContent(makePopupHtml(point));
       infoWindow.open(map, marker);
     });
 
-    return { marker, category: point.category };
-  });
+    markerObjects.push({ marker: marker, category: point.category });
+    i = i + 1;                                // 変化量：次のデータへ
+  }
 
-  // ==================================================
-  // ズームに応じてポップコーンのサイズを変える（機能そのまま）
-  // ==================================================
+  // ズームに合わせてポップコーンのアイコンの大きさを変える
+  // （引いたときに小さすぎて見えなくならないように）
   function updateMarkers() {
     const zoom = map.getZoom();
-    let popcornSize = 30 + (zoom - 15) * 8;                 // ズームに比例して大きくする
-    popcornSize = Math.max(35, Math.min(80, popcornSize));  // 35〜80の範囲に収める
 
-    markerObjects.forEach(({ marker, category }) => {
-      if (category === "popcorn") {
-        marker.setIcon({
+    let popcornSize = 30 + (zoom - 15) * 8;                   // ズームに比例して大きくなる
+    popcornSize = Math.max(35, Math.min(80, popcornSize));    // 35〜80 の範囲に収める
+
+    let k = 0;                                // 変数：今見ているマーカーの番号
+    while (k < markerObjects.length) {        // 条件：全部のマーカーを見るまで
+      const obj = markerObjects[k];
+
+      if (obj.category === "popcorn") {
+        obj.marker.setIcon({
           url: "cut.png",
           scaledSize: new google.maps.Size(popcornSize, popcornSize),
-          anchor: new google.maps.Point(popcornSize / 2, popcornSize)
+          anchor: new google.maps.Point(popcornSize / 2, popcornSize)   // 画像の下のまんなかを地点に合わせる
         });
       }
-    });
+      k = k + 1;                              // 変化量：次のマーカーへ
+    }
   }
 
   map.addListener("zoom_changed", updateMarkers);
@@ -87,24 +85,20 @@ function initializeMarkers(mapInstance) {
   return markerObjects;
 }
 
-
 // ==================================================
-// ポップアップの中身（HTML）を組み立てる関数
-// 施設の情報を受け取って、おしゃれなカードのHTMLを返す。
+// ポップアップの中身（カード型のHTML）を組み立てる
+// markers.js の施設に note を足すと、補足説明として表示される
 // ==================================================
 function makePopupHtml(point) {
-  // カテゴリの情報（絵文字・色・ラベル）を取り出す。
-  // 万が一カテゴリ不明でも落ちないように、予備の値を用意しておく。
+  // カテゴリが分からないときのための予備の値
   const info = CATEGORY_INFO[point.category] || { emoji: "📍", label: "施設", color: "#666" };
 
-  // point.note があれば補足として表示する（なければ空）。
-  // markers.jsの各施設に note を足せば、ここに説明が出る。
-  const noteHtml = point.note
-    ? `<div class="popup-note">${point.note}</div>`
-    : "";
+  let noteHtml = "";
+  if (point.note) {
+    noteHtml = `<div class="popup-note">${point.note}</div>`;
+  }
 
-  // カード型のHTMLを文字列で組み立てて返す。
-  // style属性で色を直接指定しているのは、カテゴリごとに色を変えるため。
+  // 色はカテゴリごとに変えたいので、style で直接指定している
   return `
     <div class="popup-card">
       <div class="popup-emoji" style="background:${info.color}1a; border-color:${info.color}40;">
