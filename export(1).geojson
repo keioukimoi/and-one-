@@ -1,0 +1,1383 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-11-20T06:16:13Z",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "relation/3557458",
+      "properties": {
+        "@id": "relation/3557458",
+        "duration": "15",
+        "name": "ウエスタンリバー鉄道",
+        "name:en": "Western River Railway",
+        "name:es": "Ferrocarril Western River",
+        "name:ja": "ウエスタンリバー鉄道",
+        "operator": "オリエンタルランド",
+        "roundtrip": "yes",
+        "route": "train",
+        "tourism": "attraction",
+        "type": "route",
+        "website": "https://www.tokyodisneyresort.jp/tdl/attraction/detail/154/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/adventure/western/index.html",
+        "wheelchair": "yes",
+        "wikidata": "Q3567503",
+        "wikipedia": "ja:ウエスタンリバー鉄道",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8842432,
+          35.6327526
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/72443624",
+      "properties": {
+        "@id": "way/72443624",
+        "attraction": "carousel",
+        "building": "retail",
+        "name": "キャッスルカールセル",
+        "name:en": "Castle Carrousel",
+        "name:ja": "キャッスルカールセル",
+        "name:ja_rm": "Kyassurukāruseru",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8812436,
+          35.6313917
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/72443625",
+      "properties": {
+        "@id": "way/72443625",
+        "attraction": "amusement_ride",
+        "building": "roof",
+        "name": "アリスのティーパーティー",
+        "name:en": "Alice's Tea Party",
+        "name:ja": "アリスのティーパーティー",
+        "name:ja_rm": "Arisu no tīpātī",
+        "wikidata": "Q2611856",
+        "wikipedia": "ja:マッド・ティーパーティー",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8809815,
+          35.63116
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/72865092",
+      "properties": {
+        "@id": "way/72865092",
+        "alt_name:es": "Piratas del Caribe",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "name": "カリブの海賊",
+        "name:en": "Pirates of Caribbean",
+        "name:ja": "カリブの海賊",
+        "name:ja_rm": "Karibunokaizoku",
+        "name:zh": "加勒比海盜",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/al/atr_carib.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/adventure/carib/index.html",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8811065,
+          35.6347619
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/72865097",
+      "properties": {
+        "@id": "way/72865097",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "fastpass": "yes",
+        "name": "ホーンテッドマンション",
+        "name:en": "Haunted Mansion",
+        "name:ja": "ホーンテッドマンション",
+        "name:ja_rm": "Hōnteddomanshon",
+        "operator": "Orential Trading Company",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_haunted.html",
+        "website:en": "http://www.tokyodisneyresort.jp/en/attraction/detail/str_id:fl_haunted/",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8821823,
+          35.6305908
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/97767438",
+      "properties": {
+        "@id": "way/97767438",
+        "building": "retail",
+        "name": "グーフィーのペイントプレイハウス",
+        "name:en": "Goofy's Paint Playhouse",
+        "name:es": "Goofy's Paint 'n' Play House",
+        "name:ja": "グーフィーのペイントプレイハウス",
+        "name:ja_rm": "Gūfī no peintopureihausu",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:tt_goofy/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/toontown/goofy/index.html",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8791939,
+          35.6304791
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/97767446",
+      "properties": {
+        "@id": "way/97767446",
+        "attraction": "meet_and_greet",
+        "building": "retail",
+        "name": "ミッキーの家とミート・ミッキー",
+        "name:en": "Mickey's House and Meet Mickey",
+        "name:ja": "ミッキーの家とミート・ミッキー",
+        "name:ja_rm": "Mikkī no ie to mīto mikkī",
+        "operator": "Orential Trading Company",
+        "source": "bing",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/greeting/detail/str_id:tt_mickey/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/toontown/mickey/index.html",
+        "wikidata": "Q6838553",
+        "wikipedia": "ja:ミッキーの家",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8786152,
+          35.6302509
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/97767482",
+      "properties": {
+        "@id": "way/97767482",
+        "attraction": "log_ride",
+        "building": "retail",
+        "contact:website": "http://www.tokyodisneyresort.co.jp/tdl/cc/atr_splash.html",
+        "contact:website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/critter/splash/index.html",
+        "fastpass": "yes",
+        "name": "スプラッシュ・マウンテン",
+        "name:en": "Splash Mountain",
+        "name:ja": "スプラッシュ・マウンテン",
+        "name:ja_rm": "Supurasshu maunten",
+        "source": "bing",
+        "wikidata": "Q2492971",
+        "wikimedia_commons": "Category:Splash Mountain",
+        "wikipedia": "ja:スプラッシュ・マウンテン",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8828984,
+          35.6305067
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/97767501",
+      "properties": {
+        "@id": "way/97767501",
+        "attraction": "roller_coaster",
+        "building": "retail",
+        "name": "ガジェットのゴーコースター",
+        "name:en": "Gadget's Go Coaster",
+        "name:ja": "ガジェットのゴーコースター",
+        "source": "bing",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:tt_gadget/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/toontown/gadget/index.html",
+        "wikidata": "Q3094227",
+        "wikimedia_commons": "Category:Gadget's Go Coaster",
+        "wikipedia": "en:Gadget's Go Coaster",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.878698,
+          35.6305569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217727348",
+      "properties": {
+        "@id": "way/217727348",
+        "building": "retail",
+        "height": "51",
+        "height_ft": "167.323",
+        "historic": "castle",
+        "name": "シンデレラ城",
+        "name:en": "Cinderella Castle",
+        "name:ja": "シンデレラ城",
+        "tourism": "attraction",
+        "website": "https://disneyparks.disney.go.com/jp/disneyland/",
+        "wikidata": "Q2742709",
+        "wikimedia_commons": "Category:Cinderella Castle at Magic Kingdom",
+        "wikipedia": "ja:シンデレラ城",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8808499,
+          35.6320774
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217842052",
+      "properties": {
+        "@id": "way/217842052",
+        "attraction": "amusement_ride",
+        "building": "retail",
+        "fastpass": "yes",
+        "name": "プーさんのハニーハント",
+        "name:en": "Pooh's Hunny Hunt",
+        "name:ja": "プーさんのハニーハント",
+        "name:ja_rm": "Pū-san no hanīhanto",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_pooh.html",
+        "website:en": "http://www.tokyodisneyresort.jp/en/attraction/detail/str_id:fl_pooh/",
+        "wikidata": "Q16204480",
+        "wikipedia": "ja:プーさんのハニーハント",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8804703,
+          35.6302333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217870337",
+      "properties": {
+        "@id": "way/217870337",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "name": "イッツ・ア・スモールワールド",
+        "name:en": "\"it's a small world\"",
+        "name:ja": "イッツ・ア・スモールワールド",
+        "name:ja_rm": "Ittsu a sumōruwārudo",
+        "source": "Bing",
+        "website": "https://www.tokyodisneyresort.jp/tdl/attraction/detail/172/",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/fantasy/small/index.html",
+        "wikidata": "Q285105",
+        "wikimedia_commons": "Category:It's a small world",
+        "wikipedia": "ja:イッツ・ア・スモールワールド",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8812876,
+          35.6303601
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217929348",
+      "properties": {
+        "@id": "way/217929348",
+        "building": "yes",
+        "name": "ロジャーラビットのカートゥーンスピン Roger Rabbit's Car Toon Spin",
+        "name:en": "Roger Rabbit's Car Toon Spin",
+        "name:ja": "ロジャーラビットのカートゥーンスピン",
+        "name:ja_rm": "Rojārabitto no kātoūnsupin",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/tt/atr_rabbit.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/toontown/rabbit/index.html",
+        "wikidata": "Q3439399",
+        "wikimedia_commons": "Category:Roger Rabbit's Car Toon Spin",
+        "wikipedia": "en:Roger Rabbit's Car Toon Spin",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8801596,
+          35.6295836
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217930681",
+      "properties": {
+        "@id": "way/217930681",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "contact:website": "http://www.tokyodisneyresort.co.jp/tdl/tl/atr_monster.html",
+        "contact:website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/tomorrow/monsters/index.html",
+        "fastpass": "yes",
+        "name": "モンスターズ・インク“ライドゴーシーク”",
+        "name:en": "Monsters, Inc. Ride & Go Seek",
+        "name:ja": "モンスターズ・インク“ライドゴーシーク”",
+        "website": "https://www.tokyodisneyresort.jp/en/tdl/attraction/detail/189/",
+        "wikimedia_commons": "Category:Monsters, Inc. Ride & Go Seek",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8783249,
+          35.6339263
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/217930682",
+      "properties": {
+        "@id": "way/217930682",
+        "alt_name:en": "Star Tours",
+        "building": "retail",
+        "fastpass": "yes",
+        "layer": "2",
+        "name": "スター・ツアーズザ・アドベンチャーズ・コンティニュー",
+        "name:en": "Star Tours – The Adventures Continue",
+        "name:ja": "スター・ツアーズザ・アドベンチャーズ・コンティニュー",
+        "name:ja_rm": "Sutā tsuāzuza adobenchāzu kontinyū",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/en/attraction/detail/str_id:tl_monster/",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/tomorrow/tours/index.html",
+        "wheelchair": "yes",
+        "wikidata": "Q3496988",
+        "wikipedia": "ja:スター・ツアーズ:ザ・アドベンチャーズ・コンティニュー",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8780085,
+          35.6335434
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/218979636",
+      "properties": {
+        "@id": "way/218979636",
+        "building": "roof",
+        "name": "蒸気船マークトウェイン号",
+        "name:en": "Mark Twain Riverboat",
+        "name:ja": "蒸気船マークトウェイン号",
+        "name:ja_rm": "Jōki-sen mākutouein-gō",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:wl_mark/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/western/mark/index.html",
+        "wikidata": "Q3006137",
+        "wikimedia_commons": "Category:Mark Twain (ship, 1955)",
+        "wikipedia": "ja:蒸気船マークトウェイン号",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8829532,
+          35.6316122
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/265740138",
+      "properties": {
+        "@id": "way/265740138",
+        "name": "チップとデールのツリーハウス",
+        "name:en": "Chip 'n Dale's Treehouse",
+        "name:es": "Chip 'n Dale's Treehouse",
+        "name:ja": "チップとデールのツリーハウス",
+        "name:ja_rm": "Chippu to dēru no tsurīhausu",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:tt_chip/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/toontown/chip/index.html",
+        "wikidata": "Q11317957",
+        "wikipedia": "ja:チップとデールのツリーハウス",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.878754,
+          35.6303717
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/265740446",
+      "properties": {
+        "@id": "way/265740446",
+        "leisure": "park",
+        "name": "トゥーンパーク",
+        "name:en": "Toon Park",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:tt_toon/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/toontown/toon/index.html",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8794527,
+          35.63053
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/272116601",
+      "properties": {
+        "@id": "way/272116601",
+        "attraction": "amusement_ride",
+        "barrier": "fence",
+        "name": "ジャスミンのフライングカーペット",
+        "name:en": "Jasmine's Flying Carpet",
+        "name:es": "Jasmine's Flying Carpets",
+        "name:ja": "ジャスミンのフライングカーペット",
+        "name:ja_rm": "Jasumin no furaingukāpetto",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:ac_jasmine/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tds/atrc/arabian/jasmine/index.html",
+        "wikidata": "Q2744001",
+        "wikipedia": "ja:アラジンのマジック・カーペット",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8810941,
+          35.6283453
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/671983231",
+      "properties": {
+        "@id": "way/671983231",
+        "alt_name": "Soarin'",
+        "attraction": "amusement_ride",
+        "building": "retail",
+        "name": "ソアリン・ファンタスティックフライト",
+        "name:en": "Soarin' Fantastic Flight",
+        "name:zh": "翱翔：梦幻奇航",
+        "name:zh-Hans": "翱翔：梦幻奇航",
+        "operator": "オリエンタルランド",
+        "website": "https://www.tokyodisneyresort.jp/treasure/soaring/",
+        "wikidata": "Q2775778",
+        "wikipedia": "ja:ソアリン",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8854022,
+          35.627686
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/754497701",
+      "properties": {
+        "@id": "way/754497701",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "name": "美女と野獣”魔法のものがたり”",
+        "name:en": "Enchanted Tale of Beauty and the Beast",
+        "name:ja": "美女と野獣”魔法のものがたり”",
+        "name:zh": "美女与野兽“城堡奇缘”",
+        "operator": "オリエンタルランド",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/tdl/attraction/detail/197/",
+        "website:en": "https://www.tokyodisneyresort.jp/en/tdl/attraction/detail/197/",
+        "wikidata": "Q65042943",
+        "wikipedia": "ja:美女と野獣“魔法のものがたり”",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8778506,
+          35.6306115
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/848506227",
+      "properties": {
+        "@id": "way/848506227",
+        "attraction": "roller_coaster",
+        "fastpass": "yes",
+        "name": "レイジングスピリッツ Raging Spirits",
+        "name:en": "Raging Spirits",
+        "name:ja": "レイジングスピリッツ",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.co.jp/tds/ld/atr_raging.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tds/atrc/lostriver/raging/index.html",
+        "wikidata": "Q267353",
+        "wikipedia": "en:Raging Spirits",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8808184,
+          35.6277119
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/854584575",
+      "properties": {
+        "@id": "node/854584575",
+        "attraction": "roller_coaster",
+        "fastpass": "yes",
+        "name": "ビッグ サンダー マウンテン",
+        "name:en": "Big Thunder Mountain",
+        "name:ja": "ビッグ サンダー マウンテン",
+        "name:ja_rm": "Biggu sandā maunten",
+        "operator": "Orential Trading Company",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:wl_mountain/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/western/mountain/index.html",
+        "wikidata": "Q859406",
+        "wikipedia": "en:Big Thunder Mountain Railroad"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8840822,
+          35.6326401
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/939103423",
+      "properties": {
+        "@id": "way/939103423",
+        "attraction": "amusement_ride",
+        "building": "construction;yes",
+        "name": "ラプンツェルのランタンフェスティバル",
+        "name:en": "Rapunzel’s Lantern Festival",
+        "name:ja": "ラプンツェルのランタンフェスティバル",
+        "name:zh": "乐佩公主天灯盛会",
+        "name:zh-Hans": "乐佩公主天灯盛会",
+        "wikidata": "Q6600319",
+        "wikipedia": "ja:東京ディズニーシーのアトラクションの一覧",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8794491,
+          35.6289859
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/988169388",
+      "properties": {
+        "@id": "way/988169388",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "name": "シンドバッド・ストーリーブック・ヴォヤッジ",
+        "name:en": "Sindbad's Storybook Voyage",
+        "name:ja": "シンドバッド・ストーリーブック・ヴォヤッジ",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:ac_sindbad/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tds/atrc/arabian/sindbad/index.html",
+        "wikidata": "Q3484881",
+        "wikipedia": "ja:シンドバッド・ストーリーブック・ヴォヤッジ",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8816179,
+          35.6287645
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/1272804708",
+      "properties": {
+        "@id": "node/1272804708",
+        "name": "シンデレラのフェアリーテイル・ホール Cinderella's Fairy Tale Hall",
+        "name:en": "Cinderella's Fairy Tale Hall",
+        "name:ja": "シンデレラのフェアリーテイル・ホール",
+        "name:ja_rm": "Shinderera no fearīteiru hōru",
+        "name:zh": "迪士尼樂園",
+        "operator": "Orential Trading Company",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:fl_cinderella/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/attraction/detail/str_id:fl_cinderella/",
+        "wikidata": "Q11308639",
+        "wikipedia": "ja:シンデレラのフェアリーテイル・ホール"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8808501,
+          35.6319456
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/1281631824",
+      "properties": {
+        "@id": "way/1281631824",
+        "attraction": "dark_ride",
+        "building": "retail",
+        "name": "アナとエルサのフローズンジャーニー",
+        "name:en": "Anna and Elsa's Frozen Journey",
+        "name:ja": "アナとエルサのフローズンジャーニー",
+        "name:zh": "安娜和艾莎的冰雪之旅",
+        "name:zh-Hans": "安娜和艾莎的冰雪之旅",
+        "wikidata": "Q20164536",
+        "wikipedia": "en:Frozen Ever After",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8772502,
+          35.629912
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/1292142087",
+      "properties": {
+        "@id": "way/1292142087",
+        "attraction": "amusement_ride",
+        "name": "Pixie Hollow",
+        "name:en": "Pixie Hollow",
+        "name:ja": "ピクシーホロウ",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8778281,
+          35.6284897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "way/1299613463",
+      "properties": {
+        "@id": "way/1299613463",
+        "building": "retail",
+        "name": "ピーターパンのネバーランドアドベンチャー",
+        "name:en": "Peter Pan's Never Land Adventure",
+        "name:ja": "ピーターパンのネバーランドアドベンチャー",
+        "name:zh": "小飞侠梦幻岛历险记",
+        "name:zh-Hans": "小飞侠梦幻岛历险记",
+        "tourism": "attraction",
+        "wikidata": "Q6600319",
+        "wikipedia": "ja:東京ディズニーシーのアトラクションの一覧",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8789515,
+          35.6278926
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/2713524339",
+      "properties": {
+        "@id": "node/2713524339",
+        "name": "ジャングルクルーズ",
+        "name:en": "Jungle Cruise",
+        "name:es": "Jungle Cruise",
+        "name:ja": "ジャングルクルーズ",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:al_jungle/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tdl/atrc/adventure/jungle/index.html",
+        "wikidata": "Q2777874",
+        "wikimedia_commons": "Category:Jungle Cruise",
+        "wikipedia": "ja:ジャングルクルーズ"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8824076,
+          35.6339528
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/2770484862",
+      "properties": {
+        "@id": "node/2770484862",
+        "amenity": "theatre",
+        "fastpass": "yes",
+        "name": "マジックランプシアター",
+        "name:en": "The Magic Lamp Theater",
+        "name:ja": "マジックランプシアター",
+        "name:ja_rm": "Majikkuranpushiatā",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:ac_magic/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tds/atrc/arabian/magic/index.html",
+        "wikidata": "Q30921752",
+        "wikipedia": "ja:マジックランプシアター"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.883104,
+          35.6285626
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/3692911380",
+      "properties": {
+        "@id": "node/3692911380",
+        "name": "ペニーアーケード",
+        "name:en": "Penny Arcade",
+        "name:ja": "ペニーアーケード",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8795555,
+          35.6340158
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/6175539711",
+      "properties": {
+        "@id": "node/6175539711",
+        "name": "スピニング岩",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8842666,
+          35.6315883
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12022612270",
+      "properties": {
+        "@id": "node/12022612270",
+        "name": "ミニーのスタイルスタジオ",
+        "name:en": "Minnie's Style Studio",
+        "name:ja": "ミニーのスタイルスタジオ",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8794121,
+          35.6307263
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12022911635",
+      "properties": {
+        "@id": "node/12022911635",
+        "name": "Town Area",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8846864,
+          35.6350441
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12022911636",
+      "properties": {
+        "@id": "node/12022911636",
+        "name": "Cineme Area",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8867953,
+          35.6338686
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12025350524",
+      "properties": {
+        "@id": "node/12025350524",
+        "name": "インディアン居住地",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8852437,
+          35.6318137
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12058560113",
+      "properties": {
+        "@id": "node/12058560113",
+        "name": "ビッグサンダー・マウンテン",
+        "name:en": "Big Thunder Mountain",
+        "name:ja": "ビッグサンダー・マウンテン",
+        "tourism": "attraction",
+        "wikidata": "Q859406",
+        "wikipedia": "ja:ビッグサンダー・マウンテン"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8834647,
+          35.6326199
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12066406996",
+      "properties": {
+        "@id": "node/12066406996",
+        "name": "Arendelle Village",
+        "note": "References: The map of the Frozen Kingdom on display at Fantasy Springs.",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8776258,
+          35.6289689
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12066406997",
+      "properties": {
+        "@id": "node/12066406997",
+        "name": "Courtyard",
+        "name:en": "Courtyard",
+        "note": "References: A map of the Frozen Kingdom on display at Fantasy Springs",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.877973,
+          35.6295448
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12066406998",
+      "properties": {
+        "@id": "node/12066406998",
+        "name": "Stauben Village",
+        "name:en": "Stauben Village",
+        "note": "References: The map of the Frozen Kingdom on display at Fantasy Springs",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.877778,
+          35.6297545
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12074662873",
+      "properties": {
+        "@id": "node/12074662873",
+        "name": "空飛ぶダンボ",
+        "name:en": "Dumbo the Flying Elephant",
+        "name:ja": "空飛ぶダンボ",
+        "tourism": "attraction",
+        "wikidata": "Q964565",
+        "wikipedia": "ja:空飛ぶダンボ"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8816938,
+          35.6314631
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12074896868",
+      "properties": {
+        "@id": "node/12074896868",
+        "name": "ベイマックスのハッピーライド",
+        "name:en": "The Happy Ride with Baymax",
+        "name:ja": "ベイマックスのハッピーライド",
+        "name:zh": "大白欢乐之旅",
+        "tourism": "attraction",
+        "wikidata": "Q85873622",
+        "wikipedia": "ja:ベイマックスのハッピーライド"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8788382,
+          35.6317007
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12075259728",
+      "properties": {
+        "@id": "node/12075259728",
+        "name": "トムソーヤのツリーハウス",
+        "name:en": "Tom Sawyer's Treehouse",
+        "name:ja": "トムソーヤのツリーハウス",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8836371,
+          35.6313841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12075259729",
+      "properties": {
+        "@id": "node/12075259729",
+        "name": "サムクレメンズ砦",
+        "name:ja": "サムクレメンズ砦",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.884755,
+          35.631635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12142268455",
+      "properties": {
+        "@id": "node/12142268455",
+        "name": "Pixie Hollow",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8781336,
+          35.6286032
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12143426345",
+      "properties": {
+        "@id": "node/12143426345",
+        "name": "アレンデール城",
+        "name:en": "Arendelle Castle",
+        "name:ja": "アレンデール城",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8783288,
+          35.6296004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12172375272",
+      "properties": {
+        "@id": "node/12172375272",
+        "name": "エントリープラザ",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.884044,
+          35.6354137
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12385810200",
+      "properties": {
+        "@id": "node/12385810200",
+        "attraction": "dark_ride",
+        "name": "白雪姫と七人のこびと",
+        "name:en": "Snow White's Adventures",
+        "name:ja": "白雪姫と七人のこびと",
+        "name:ja_rm": "Shirayukihime to nana-ri no ko bito",
+        "operator": "Orential Trading Company",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_snow.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/fantasy/snow/index.html",
+        "wikidata": "Q3487196",
+        "wikipedia": "ja:白雪姫と七人のこびと"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8814139,
+          35.6318542
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12468167145",
+      "properties": {
+        "@id": "node/12468167145",
+        "name": "白雪姫の願いの井戸",
+        "name:ja": "白雪姫の願いの井戸",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8814017,
+          35.6322752
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12912462815",
+      "properties": {
+        "@id": "node/12912462815",
+        "name": "Spring Valley",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8779231,
+          35.6285423
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12912462816",
+      "properties": {
+        "@id": "node/12912462816",
+        "name": "Autumn Harvest",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.87767,
+          35.6285451
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12912462817",
+      "properties": {
+        "@id": "node/12912462817",
+        "name": "Summer Glade",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8776737,
+          35.6283737
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12912462818",
+      "properties": {
+        "@id": "node/12912462818",
+        "name": "Winter Woods",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8778571,
+          35.6286919
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12974274272",
+      "properties": {
+        "@id": "node/12974274272",
+        "name": "African Veldt",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8836003,
+          35.6344414
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12974274281",
+      "properties": {
+        "@id": "node/12974274281",
+        "name": "indian elephant bathing pool",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8828785,
+          35.6339893
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12974274290",
+      "properties": {
+        "@id": "node/12974274290",
+        "name": "Native Territory",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8841908,
+          35.6336791
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12987762488",
+      "properties": {
+        "@id": "node/12987762488",
+        "name": "ハックルベリー沼",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8835705,
+          35.6312788
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12987762489",
+      "properties": {
+        "@id": "node/12987762489",
+        "name": "インディアンキャンプ",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8849883,
+          35.631789
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/12987762490",
+      "properties": {
+        "@id": "node/12987762490",
+        "name": "ティータートッター岩",
+        "tourism": "attraction"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8839857,
+          35.6314416
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/13713865561",
+      "properties": {
+        "@id": "node/13713865561",
+        "amenity": "cinema",
+        "name": "ミッキーのフィルハーマジック",
+        "name:en": "Mickey's PhilharMagic",
+        "name:ja": "ミッキーのフィルハーマジック",
+        "name:ja_rm": "Mikkī no firuhāmajikku",
+        "tourism": "attraction",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_philhar.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/fantasy/philhar/index.html"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8806414,
+          35.6314952
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/13713865562",
+      "properties": {
+        "@id": "node/13713865562",
+        "attraction": "dark_ride",
+        "name": "ピノキオの冒険旅行",
+        "name:en": "Pinocchio's Daring Journey",
+        "name:ja": "ピノキオの冒険旅行",
+        "name:ja_rm": "Pinokio no bōken ryokō",
+        "operator": "Orential Trading Company",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_pinocchio.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/fantasy/pinocchio/index.html",
+        "wikidata": "Q3388788",
+        "wikimedia_commons": "Category:Pinocchio's Daring Journey",
+        "wikipedia": "ja:ピノキオの冒険旅行"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8804094,
+          35.6311491
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/13713865570",
+      "properties": {
+        "@id": "node/13713865570",
+        "attraction": "dark_ride",
+        "name": "ピーターパン空の旅",
+        "name:en": "Peter Pan's Flight",
+        "name:ja": "ピーターパン空の旅",
+        "name:ja_rm": "Pītāpan soranotabi",
+        "operator": "Orential Trading Company",
+        "website": "https://www.tokyodisneyresort.co.jp/tdl/fl/atr_peter.html",
+        "website:en": "http://www.tokyodisneyresort.co.jp/en/tdl/atrc/fantasy/peterpan/index.html",
+        "wikidata": "Q2916451",
+        "wikimedia_commons": "Category:Peter Pan's Flight",
+        "wikipedia": "ja:ピーターパン空の旅"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8817773,
+          35.6319367
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "node/13727535320",
+      "properties": {
+        "@id": "node/13727535320",
+        "attraction": "carousel",
+        "name": "キャラバンカルーセル",
+        "name:en": "Caravan Carousel",
+        "name:ja": "キャラバンカルーセル",
+        "website": "https://www.tokyodisneyresort.jp/attraction/detail/str_id:ac_caravan/",
+        "website:en": "http://www.tokyodisneyresort.jp/en/tds/atrc/arabian/caravan/index.html"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8833243,
+          35.6281847
+        ]
+      }
+    }
+  ]
+}
