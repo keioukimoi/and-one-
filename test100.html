@@ -383,13 +383,16 @@
       // ==================================================
       // 6.6 アトラクション名を自分で表示する（OSMのデータ）★追加
       //     マーカーの文字として置くので、通路やマスクより上に表示される
+      //     ★v2：重なった文字は自動で隠す／英語だけの名前は出さない
       // ==================================================
-      const LABEL_MIN_ZOOM = 17;    // このズーム以上のときだけ文字を出す（ごちゃつき防止）
+      const LABEL_MIN_ZOOM = 17;    // このズーム以上のときだけ文字を出す
+      const LABEL_FONT_SIZE = 12;   // 文字の大きさ（px）
+      const LABEL_GAP = 4;          // 文字と文字のあいだに最低限空けるすき間（px）
  
       let labelColor = "#5A4632";              // ライトモード：こげ茶
       if (isDark) { labelColor = "#F2E6CC"; }  // ダークモード：クリーム色
  
-      const attrMarkers = [];                  // 作った文字マーカーをためておく箱
+      const attrLabels = [];        // { marker, latLng, width } をためておく箱
  
       // ある点がパークの形（holeCoords）の内側にあるかを調べる
       // 点から右に線をのばして、パークの辺と何回交わるかを数える（奇数なら内側）
@@ -411,13 +414,79 @@
         return inside;
       }
  
-      // ズームに合わせて文字を出したり消したりする
-      function updateLabelVisibility() {
-        const show = map.getZoom() >= LABEL_MIN_ZOOM;
-        let k = 0;
-        while (k < attrMarkers.length) {
-          attrMarkers[k].setVisible(show);
-          k = k + 1;
+      // 名前に日本語（ひらがな・カタカナ・漢字）が入っているか
+      function hasJapanese(text) {
+        return /[぀-ヿ一-鿿]/.test(text);
+      }
+ 
+      // 文字の横幅をざっくり計算する（日本語は1文字=フォントサイズ、英数字はその6割）
+      function estimateTextWidth(text) {
+        let width = 0;
+        let c = 0;                             // 変数：今見ている文字の番号
+        while (c < text.length) {              // 条件：全部の文字を見るまで
+          if (text.charCodeAt(c) > 255) {
+            width = width + LABEL_FONT_SIZE;
+          } else {
+            width = width + LABEL_FONT_SIZE * 0.6;
+          }
+          c = c + 1;                           // 変化量：次の文字へ
+        }
+        return width;
+      }
+ 
+      // 緯度経度 → 画面上の位置（px）に変換するための道具
+      // （OverlayView を空っぽのまま地図にのせると、変換用の projection が使えるようになる）
+      const projHelper = new google.maps.OverlayView();
+      projHelper.onAdd = function () {};
+      projHelper.draw = function () {};
+      projHelper.onRemove = function () {};
+      projHelper.setMap(map);
+ 
+      // 2つの四角が重なっているか
+      function boxesOverlap(a, b) {
+        return a.left < b.right && b.left < a.right &&
+               a.top < b.bottom && b.top < a.bottom;
+      }
+ 
+      // 文字を出すか隠すかを決める
+      // 先に置いた文字と重なる文字は隠す（データの先頭に近いものが優先）
+      function updateLabels() {
+        const projection = projHelper.getProjection();
+        const zoomOk = map.getZoom() >= LABEL_MIN_ZOOM;
+ 
+        const placedBoxes = [];                // もう表示すると決めた文字の四角
+        let k = 0;                             // 変数：今見ている文字の番号
+        while (k < attrLabels.length) {        // 条件：全部の文字を見るまで
+          const item = attrLabels[k];
+          k = k + 1;                           // 変化量：次の文字へ
+ 
+          if (!zoomOk || !projection) {        // ズームが足りない or まだ準備できていない
+            item.marker.setVisible(false);
+            continue;
+          }
+ 
+          const p = projection.fromLatLngToContainerPixel(item.latLng);
+          const box = {
+            left:   p.x - item.width / 2 - LABEL_GAP,
+            right:  p.x + item.width / 2 + LABEL_GAP,
+            top:    p.y - LABEL_FONT_SIZE / 2 - LABEL_GAP,
+            bottom: p.y + LABEL_FONT_SIZE / 2 + LABEL_GAP
+          };
+ 
+          // すでに置いた文字と重なるか調べる
+          let overlapped = false;
+          let b = 0;
+          while (b < placedBoxes.length && !overlapped) {
+            if (boxesOverlap(box, placedBoxes[b])) { overlapped = true; }
+            b = b + 1;
+          }
+ 
+          if (overlapped) {
+            item.marker.setVisible(false);     // 重なるので隠す
+          } else {
+            item.marker.setVisible(true);      // 重ならないので出す
+            placedBoxes.push(box);
+          }
         }
       }
  
@@ -438,6 +507,7 @@
             let name = props["name:ja"];       // 日本語名があればそれを使う
             if (!name) { name = props.name; }
             if (!name) { continue; }           // 名前がなければ飛ばす
+            if (!hasJapanese(name)) { continue; }            // 英語だけの名前は飛ばす
             if (usedNames[name]) { continue; } // もう出した名前なら飛ばす
  
             const lng = f.geometry.coordinates[0];
@@ -446,9 +516,11 @@
  
             usedNames[name] = true;
  
+            const latLng = new google.maps.LatLng(lat, lng);
             const m = new google.maps.Marker({
               map: map,
-              position: { lat: lat, lng: lng },
+              position: latLng,
+              visible: false,                  // 最初は隠しておいて、updateLabels で決める
               clickable: false,
               zIndex: 1,                       // トイレなどのアイコンより下にする
               icon: {                          // アイコンは見えない点にして、文字だけ出す
@@ -458,21 +530,23 @@
               label: {
                 text: name,
                 color: labelColor,
-                fontSize: "12px",
+                fontSize: LABEL_FONT_SIZE + "px",
                 fontWeight: "bold",
                 className: "attrLabel"
               }
             });
-            attrMarkers.push(m);
+ 
+            attrLabels.push({ marker: m, latLng: latLng, width: estimateTextWidth(name) });
           }
  
-          updateLabelVisibility();             // 読み込み終わったら1回チェック
+          updateLabels();                      // 読み込み終わったら1回チェック
         })
         .catch(function (err) {
           console.warn("attractions.geojson が読み込めませんでした:", err);
         });
  
-      map.addListener("zoom_changed", updateLabelVisibility);
+      // 地図の動きが止まるたびに（ズーム・移動・回転のあと）重なりを計算し直す
+      map.addListener("idle", updateLabels);
  
 
       // ==================================================
