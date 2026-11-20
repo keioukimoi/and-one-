@@ -206,7 +206,7 @@
       // 4. 地図を作る
       // ==================================================
       const map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "ここに作ったMap IDを入れる",   // ★追加：これがないと回転できない
+        mapId: "1ebd012bef2a7f4b5b933b70",   // ★追加：これがないと回転できない
         colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,   // ★追加：スマホのダークモード設定に合わせる
         zoom: 16.5,
         center: center,
@@ -319,7 +319,7 @@
       //     自分で持っているデータで、どのズームでも同じ細かさで描く
       // ==================================================
       const walkLayer = new google.maps.Data({ map: map });   // マスクとは別のレイヤー
-      walkLayer.loadGeoJson("walkways.geojson");
+      walkLayer.loadGeoJson("export.geojson");
 
       let walkColor = "#FFFFFF";              // ライトモード：白
       if (isDark) { walkColor = "#E8D9B5"; }  // ダークモード：まぶしくないクリーム色
