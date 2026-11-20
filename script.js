@@ -2,7 +2,7 @@ let map;
 function initializeMarkers(mapInstance) {
   map = mapInstance;
     const overlay = new google.maps.GroundOverlay(
-    "heikei.png",
+    "haikei.png",
     {
       north: 35.637544,
       south: 35.627657,
