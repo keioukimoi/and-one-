@@ -216,7 +216,28 @@
         west:  outerBounds.west  - 0.05
       };
 
-      const DEFAULT_HEADING = 180;   // ★追加：追従していないときの地図の向き
+      // 入口が画面の一番下に来る向きを計算する
+      //   「入口 → シンデレラ城」の方向が画面の上になるように回す
+      const ENTRANCE = { lat: 35.6356, lng: 139.8789 };   // メインエントランス付近（だいたい）
+      const CASTLE   = { lat: 35.6325, lng: 139.8806 };   // シンデレラ城付近（だいたい）
+
+      // 2点の方角を計算する（北=0°、東=90°、南=180°、西=270°）
+      function bearing(from, to) {
+        const toRad = Math.PI / 180;
+        const lat1 = from.lat * toRad;
+        const lat2 = to.lat * toRad;
+        const dLng = (to.lng - from.lng) * toRad;
+
+        const y = Math.sin(dLng) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) -
+                  Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+
+        const deg = Math.atan2(y, x) / toRad;   // -180〜180 の角度
+        return (deg + 360) % 360;                // 0〜360 にそろえる
+      }
+
+      const DEFAULT_HEADING = bearing(ENTRANCE, CASTLE);   // だいたい156°くらいになる
+      console.log("初期の向き:", DEFAULT_HEADING);
 
       // ==================================================
       // 4. 地図を作る
