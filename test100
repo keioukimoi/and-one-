@@ -73,6 +73,39 @@
       background: #1a73e8;
       color: white;
     }
+
+    /* ===== OSMのクレジット表記（左下）★追加 ===== */
+    #osmCredit {
+      position: absolute;
+      left: 8px;
+      bottom: 30px;          /* Googleロゴの少し上 */
+      z-index: 10;
+      padding: 2px 6px;
+      font-size: 10px;
+      color: #555;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 4px;
+    }
+
+    #osmCredit a {
+      color: inherit;
+    }
+
+    /* ===== ダークモードのときの見た目 ★追加 ===== */
+    @media (prefers-color-scheme: dark) {
+      #followBtn {
+        background: #2A2F42;
+        color: #8AB4F8;
+      }
+      #followBtn.active {
+        background: #8AB4F8;
+        color: #1A1E2C;
+      }
+      #osmCredit {
+        color: #BBB;
+        background: rgba(26, 30, 44, 0.7);
+      }
+    }
   </style>
 </head>
 
@@ -87,6 +120,11 @@
 
   <!-- 地図を表示する場所 -->
   <div id="map"></div>
+
+  <!-- OSMデータを使うときに必要なクレジット表記 ★追加 -->
+  <div id="osmCredit">
+    © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>
+  </div>
 
   <script src="markers.js"></script>
   <script src="script.js"></script>
@@ -168,7 +206,8 @@
       // 4. 地図を作る
       // ==================================================
       const map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "1ebd012bef2a7f4b5b933b70",   // mapId：これがないと回転できない
+        mapId: "ここに作ったMap IDを入れる",   // ★追加：これがないと回転できない
+        colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,   // ★追加：スマホのダークモード設定に合わせる
         zoom: 16.5,
         center: center,
         heading: DEFAULT_HEADING,
@@ -246,13 +285,84 @@
       map.data.addGeoJson(maskGeoJson);
 
       // 読み込ませたマスクの見た目を「真っ白」に設定する
+      // map.data.setStyle({
+      //   fillColor: "#FFFFFF",
+      //   fillOpacity: 1.0,
+      //   strokeColor: "#FFFFFF",
+      //   strokeWeight: 0,
+      //   clickable: false
+      // });
+
+      // ★変更：マスクの色をライト／ダークで切り替える（地図の背景色と同じ色にする）
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      let maskColor = "#FBF3E4";            // ライトモードの背景色
+      if (isDark) { maskColor = "#1A1E2C"; } // ダークモードの背景色
+
       map.data.setStyle({
-        fillColor: "#FFFFFF",
+        fillColor: maskColor,
         fillOpacity: 1.0,
-        strokeColor: "#FFFFFF",
+        strokeColor: maskColor,
         strokeWeight: 0,
-        clickable: false
+        clickable: false,
+        zIndex: 10                          // ★追加：通路より上に重ねる
       });
+
+      // ★追加：開いたままダークモードを切り替えたらリロードする
+      // （colorSchemeは地図を作るときにしか決められないため）
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+        location.reload();
+      });
+
+      // ==================================================
+      // 6.5 パーク内の通路を自分で描く（OSMのデータ）★追加
+      //     Googleの地図はズーム17以下で通路が潰れるので、
+      //     自分で持っているデータで、どのズームでも同じ細かさで描く
+      // ==================================================
+      const walkLayer = new google.maps.Data({ map: map });   // マスクとは別のレイヤー
+      walkLayer.loadGeoJson("walkways.geojson");
+
+      let walkColor = "#FFFFFF";              // ライトモード：白
+      if (isDark) { walkColor = "#E8D9B5"; }  // ダークモード：まぶしくないクリーム色
+
+      // ズームに合わせて線の太さを決める（ズームインするほど太く）
+      function walkLineWeight() {
+        const z = map.getZoom();
+        if (z >= 19) { return 8; }
+        if (z >= 18) { return 5; }
+        if (z >= 17) { return 3; }
+        return 2;
+      }
+
+      function styleWalkways() {
+        const weight = walkLineWeight();
+
+        walkLayer.setStyle(function (feature) {
+          const type = feature.getGeometry().getType();
+
+          // 広場などの「面」は塗りつぶす
+          if (type === "Polygon" || type === "MultiPolygon") {
+            return {
+              fillColor: walkColor,
+              fillOpacity: 1.0,
+              strokeWeight: 0,
+              clickable: false,
+              zIndex: 1
+            };
+          }
+
+          // 歩道などの「線」は太さを付けて描く
+          return {
+            strokeColor: walkColor,
+            strokeOpacity: 1.0,
+            strokeWeight: weight,
+            clickable: false,
+            zIndex: 2
+          };
+        });
+      }
+
+      styleWalkways();                                      // 最初に1回
+      map.addListener("zoom_changed", styleWalkways);       // ズームが変わるたびに太さを更新
 
       // ==================================================
       // 7. 現在地（青い点）★追加
