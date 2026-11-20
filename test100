@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>a揚gemann</title>
+
+  <style>
+    /* ===== 全体 ===== */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* ===== ポップコーンボタン ===== */
+    #popcorn-btn {
+      padding: 8px;
+      border: none;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #popcorn-btn img {
+      pointer-events: none;
+    }
+
+    /* ===== ゲームボタン（左上） ===== */
+    #gameBtn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    #gameIcon {
+      width: 90px;   /* アイコンの大きさ */
+      height: auto;
+      display: block;
+    }
+
+    /* ===== 追従ボタン（右下）★追加 ===== */
+    #followBtn {
+      position: absolute;
+      right: 16px;
+      bottom: 32px;
+      z-index: 10;
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 50%;
+      background: white;
+      color: #1a73e8;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #followBtn.active {
+      background: #1a73e8;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ゲーム画面へ移動するボタン -->
+  <button id="gameBtn" onclick="location.href='game.html'">
+    <img src="game.png" alt="GAME" id="gameIcon" style="width: 90px; height: auto;">
+  </button>
+
+  <!-- 現在地追従＋コンパスのボタン ★追加 -->
+  <button id="followBtn">追従</button>
+
+  <!-- 地図を表示する場所 -->
+  <div id="map"></div>
+
+  <script src="markers.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    function initMap() {
+
+      // ==================================================
+      // 1. くり抜く部分の点（[経度, 緯度]）
+      // ==================================================
+      const holeCoords = [
+        [139.8780422, 35.6298653],
+        [139.8774042, 35.6312691],
+        [139.8770931, 35.6318761],
+        [139.877118,  35.6341748],
+        [139.8777946, 35.6355122],
+        [139.8795214, 35.6361817],
+        [139.8811688, 35.6357622],
+        [139.88224,   35.6353588],
+        [139.8828256, 35.6351491],
+        [139.8838088, 35.6347547],
+        [139.8859195, 35.6330194],
+        [139.886249,  35.6320171],
+        [139.8850008, 35.6312703],
+        [139.884315,  35.6306529],
+        [139.8834162, 35.6303557],
+        [139.8826715, 35.6303006],
+        [139.8806598, 35.6297032],
+        [139.880534,  35.6293023],
+        [139.8780422, 35.6298653]
+      ];
+
+      // ==================================================
+      // 2. 上下左右の端を探す
+      // ==================================================
+      let west  = 180;   // 左端：最初はありえないほど右
+      let east  = -180;  // 右端：最初はありえないほど左
+      let south = 90;    // 下端：最初はありえないほど上
+      let north = -90;   // 上端：最初はありえないほど下
+
+      let i = 0;                            // 変数：今見ている点の番号
+      while (i < holeCoords.length) {       // 条件：全部の点を見るまで
+        const lng = holeCoords[i][0];       // 経度（左右）
+        const lat = holeCoords[i][1];       // 緯度（上下）
+
+        if (lng < west)  { west  = lng; }   // もっと左なら更新
+        if (lng > east)  { east  = lng; }   // もっと右なら更新
+        if (lat < south) { south = lat; }   // もっと下なら更新
+        if (lat > north) { north = lat; }   // もっと上なら更新
+
+        i = i + 1;                          // 変化量：次の点へ
+      }
+      console.log("north:", north, "south:", south, "west:", west, "east:", east);
+
+      // ==================================================
+      // 3. 地図の範囲の設定
+      // ==================================================
+      const center = { lat: 35.6326, lng: 139.8806 };
+      // ↓ここから下は今のまま
+
+      const outerBounds = {
+        north: 35.637544,
+        south: 35.627657,
+        east:  139.893391,
+        west:  139.868139
+      };
+
+      // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
+      const maskBounds = {
+        north: outerBounds.north + 0.05,
+        south: outerBounds.south - 0.05,
+        east:  outerBounds.east  + 0.05,
+        west:  outerBounds.west  - 0.05
+      };
+
+      const DEFAULT_HEADING = 180;   // ★追加：追従していないときの地図の向き
+
+      // ==================================================
+      // 4. 地図を作る
+      // ==================================================
+      const map = new google.maps.Map(document.getElementById("map"), {
+        mapId: "1ebd012bef2a7f4b5b933b70",   // mapId：これがないと回転できない
+        zoom: 16.5,
+        center: center,
+        heading: DEFAULT_HEADING,
+        tilt: 0,                                // ★追加：斜めにしない
+        restriction: {
+          latLngBounds: {
+            north: 35.637544,
+            south: 35.627657,
+            east:  139.893391,
+            west:  139.868139
+          },
+          strictBounds: false
+        },
+        maxZoom: 19,
+        isFractionalZoomEnabled: true,
+        clickableIcons: false,
+        disableDefaultUI: true
+        // ★mapIdを使うと styles は効かないので、同じ設定をCloud Consoleのマップスタイルで作る
+        // styles: [
+        //   { featureType: "poi",     stylers: [{ visibility: "off" }] },
+        //   { featureType: "transit", stylers: [{ visibility: "off" }] },
+        //   { featureType: "all", elementType: "labels.text", stylers: [{ visibility: "off" }] }
+        // ]
+      });
+
+      initializeMarkers(map);
+
+      // ==================================================
+      // 5. パーク全体が画面に入るように合わせる
+      // ==================================================
+      const parkBounds = { north: north, south: south, east: east, west: west };
+
+      function fitPark() {
+        map.setOptions({ minZoom: null });            // 一旦ズーム制限を外す
+        map.fitBounds(parkBounds, 20);                // パークが収まるズームに合わせる（余白20px）
+        google.maps.event.addListenerOnce(map, "idle", function () {
+          map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
+        });
+      }
+
+      fitPark();                                      // 最初に1回
+      window.addEventListener("resize", fitPark);     // 画面サイズや倍率が変わったらもう1回
+
+      // ==================================================
+      // 6. GeoJSONを直接流し込んで中抜きマスクを作る（Dataレイヤー方式）
+      // ==================================================
+      const maskGeoJson = {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                // 1つ目の配列：大外の四角形（★反時計回りに修正：左上→左下→右下→右上→左上）
+                [
+                  [maskBounds.west, maskBounds.north],
+                  [maskBounds.west, maskBounds.south],
+                  [maskBounds.east, maskBounds.south],
+                  [maskBounds.east, maskBounds.north],
+                  [maskBounds.west, maskBounds.north]
+                ],
+
+                // 2つ目の配列：取得したディズニーの18点（★時計回りのデータ）
+                // 2つ目の配列：くり抜き
+                holeCoords
+              ]
+            }
+          }
+        ]
+      };
+
+      // 地図にGeoJSONデータを読み込ませる
+      map.data.addGeoJson(maskGeoJson);
+
+      // 読み込ませたマスクの見た目を「真っ白」に設定する
+      map.data.setStyle({
+        fillColor: "#FFFFFF",
+        fillOpacity: 1.0,
+        strokeColor: "#FFFFFF",
+        strokeWeight: 0,
+        clickable: false
+      });
+
+      // ==================================================
+      // 7. 現在地（青い点）★追加
+      // ==================================================
+      let myPos = null;          // 今の自分の位置（まだ分からないのでnull）
+      let followMode = false;    // true：追従中 / false：固定
+
+      const myMarker = new google.maps.Marker({
+        map: map,
+        position: center,
+        visible: false,          // 位置が取れるまで隠しておく
+        clickable: false,
+        zIndex: 999,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: "#1a73e8",
+          fillOpacity: 1,
+          strokeColor: "#FFFFFF",
+          strokeWeight: 3
+        }
+      });
+
+      // 位置がパークの範囲内かどうか
+      function isInPark(pos) {
+        return pos.lat <= outerBounds.north && pos.lat >= outerBounds.south &&
+               pos.lng <= outerBounds.east  && pos.lng >= outerBounds.west;
+      }
+
+      // 位置が取れるたびに呼ばれる
+      function onPosition(p) {
+        myPos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        myMarker.setPosition(myPos);
+        myMarker.setVisible(true);
+
+        if (followMode) {
+          if (isInPark(myPos)) {
+            map.panTo(myPos);                   // 自分の位置を画面の真ん中へ
+          } else {
+            stopFollow();                       // パークの外にいるなら追従をやめる
+            console.log("パークの外にいるので追従をやめました");
+          }
+        }
+      }
+
+      function onPositionError(err) {
+        console.warn("位置情報が取れませんでした:", err.message);
+      }
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(onPosition, onPositionError, {
+          enableHighAccuracy: true,   // GPSを使って精度を上げる
+          maximumAge: 1000,           // 1秒以内の古い位置ならそのまま使う
+          timeout: 10000
+        });
+      }
+
+      // ==================================================
+      // 8. コンパス（スマホの向きで地図を回す）★追加
+      // ==================================================
+      let lastHeading = DEFAULT_HEADING;
+
+      // Androidは「北基準の向き」が取れるイベントがあればそっちを使う
+      let orientationEvent = "deviceorientation";
+      if ("ondeviceorientationabsolute" in window) {
+        orientationEvent = "deviceorientationabsolute";
+      }
+
+      function onOrientation(e) {
+        let h = null;
+
+        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+          h = e.webkitCompassHeading;           // iPhone：そのまま北からの角度
+        } else if (e.absolute && e.alpha !== null) {
+          h = 360 - e.alpha;                    // Android：alphaは反時計回りなので反転
+        }
+        if (h === null) { return; }             // 向きが取れない端末（PCなど）
+
+        // スマホを横向きにしているときの補正
+        let screenAngle = 0;
+        if (screen.orientation) { screenAngle = screen.orientation.angle; }
+        h = (h + screenAngle) % 360;
+
+        // 細かいブレで地図がガタガタしないように、3度以上変わったときだけ回す
+        let diff = Math.abs(h - lastHeading);
+        if (diff > 180) { diff = 360 - diff; }  // 359度と1度の差は2度として扱う
+        if (diff < 3) { return; }
+
+        lastHeading = h;
+        map.setHeading(h);
+      }
+
+      // ==================================================
+      // 9. 追従ボタン ★追加
+      // ==================================================
+      const followBtn = document.getElementById("followBtn");
+
+      async function startFollow() {
+        // iPhoneはボタンを押したタイミングで許可をもらう必要がある
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
+          try {
+            const result = await DeviceOrientationEvent.requestPermission();
+            if (result !== "granted") {
+              console.warn("コンパスの許可がもらえませんでした（位置の追従だけ動きます）");
+            }
+          } catch (err) {
+            console.warn("コンパスの許可エラー:", err);
+          }
+        }
+
+        window.addEventListener(orientationEvent, onOrientation);
+        followMode = true;
+        followBtn.classList.add("active");
+        followBtn.textContent = "固定";
+
+        if (myPos !== null && isInPark(myPos)) {
+          map.panTo(myPos);
+        }
+      }
+
+      function stopFollow() {
+        window.removeEventListener(orientationEvent, onOrientation);
+        followMode = false;
+        followBtn.classList.remove("active");
+        followBtn.textContent = "追従";
+
+        lastHeading = DEFAULT_HEADING;
+        map.setHeading(DEFAULT_HEADING);        // 元の向きに戻す
+      }
+
+      followBtn.addEventListener("click", function () {
+        if (followMode) {
+          stopFollow();
+        } else {
+          startFollow();
+        }
+      });
+
+      // 指で地図を動かしたら追従をやめる（勝手に戻されるとイライラするので）
+      map.addListener("dragstart", function () {
+        if (followMode) { stopFollow(); }
+      });
+    }
+  </script>
+
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
+</body>
+</html>
