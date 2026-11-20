@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ディズニー施設マップ</title>
+
+  <style>
+    /* ===== ページ全体 ===== */
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);         /* iPhoneのノッチなどを避ける余白 */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);   /* ホームバーを避ける余白 */
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Hiragino Sans', 'Meiryo', system-ui, sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+      background: #FBF3E4;      /* 地図が出るまでの色（ライトのマスクと同じ） */
+    }
+
+    /* ===== 画面上に浮かぶボタンなどの共通の見た目 ===== */
+    .floating {
+      position: absolute;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.92);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: none;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18),
+                  0 0 0 0.5px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s ease, background 0.2s ease;
+    }
+    .floating:active {
+      transform: scale(0.94);
+      background: rgba(245, 245, 245, 0.95);
+    }
+
+    /* ===== 戻るボタン（左上） ===== */
+    #backBtn {
+      top: calc(12px + var(--safe-top));
+      left: 12px;
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #1a1a2e;
+    }
+    #backBtn svg { width: 22px; height: 22px; }
+
+    /* ===== タイトルの帯（上の真ん中） ===== */
+    #title-pill {
+      top: calc(14px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-size: 14px; font-weight: 700;
+      color: #1a1a2e; letter-spacing: 0.02em;
+      pointer-events: none;
+      display: flex; align-items: center; gap: 7px;
+    }
+    #title-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #e8491d;
+    }
+
+    /* ===== ズームボタン（右下） ===== */
+    #zoom-ctrl {
+      right: 14px;
+      bottom: calc(24px + var(--safe-bottom));
+      width: 46px; border-radius: 23px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .zoom-btn {
+      width: 46px; height: 46px;
+      border: none; background: transparent;
+      font-size: 24px; font-weight: 300; color: #1a1a2e;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s ease;
+    }
+    .zoom-btn:active { background: rgba(0, 0, 0, 0.06); }
+    .zoom-divider { height: 0.5px; background: rgba(0, 0, 0, 0.12); margin: 0 8px; }
+
+    /* ===== 追従ボタン（ズームボタンの上） ===== */
+    #followBtn {
+      right: 14px;
+      bottom: calc(24px + 93px + 12px + var(--safe-bottom));   /* ズームボタン（高さ約93px）＋すき間12px の上 */
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      font-size: 12px; font-weight: 700;
+      color: #1a73e8;
+    }
+    #followBtn.active {
+      background: #1a73e8;
+      color: #ffffff;
+    }
+
+    /* ===== OSMのクレジット表記（左下） ===== */
+    #osmCredit {
+      position: absolute;
+      left: 8px;
+      bottom: 30px;          /* Googleロゴの少し上 */
+      z-index: 10;
+      padding: 2px 6px;
+      font-size: 10px;
+      color: #555;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 4px;
+    }
+    #osmCredit a {
+      color: inherit;
+    }
+
+    /* ===== アトラクション名 ===== */
+    .attrLabel {
+      /* 文字のまわりにふちを付けて、通路の上でも読めるようにする */
+      text-shadow:
+        -1px -1px 0 #FFFFFF,  1px -1px 0 #FFFFFF,
+        -1px  1px 0 #FFFFFF,  1px  1px 0 #FFFFFF;
+    }
+
+    /* ===== ポップアップ（マーカーをタップしたときのカード） ===== */
+
+    /* Googleの標準の吹き出しの「ガワ」を、自分のデザインに合わせる */
+    .gm-style .gm-style-iw-c {
+      padding: 0 !important;             /* 中の余白をなくす */
+      border-radius: 18px !important;    /* 角を丸く */
+      box-shadow: 0 8px 28px rgba(0,0,0,0.22) !important;
+      overflow: hidden;
+    }
+    .gm-style .gm-style-iw-d {
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    .gm-style .gm-style-iw-t::after {
+      background: #ffffff !important;    /* 吹き出しの下の三角形 */
+    }
+    .gm-style .gm-style-iw-c button.gm-ui-hover-effect {
+      top: 6px !important;               /* ×ボタンを少し内側に */
+      right: 6px !important;
+    }
+
+    /* カード全体：絵文字（左）と情報（右）の横並び */
+    .popup-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      min-width: 190px;
+      max-width: 260px;
+      background: #ffffff;
+    }
+    .popup-emoji {
+      flex-shrink: 0;             /* 絵文字は縮まないようにする */
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid;        /* 色はJS側でカテゴリごとに指定 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .popup-body {
+      min-width: 0;               /* 長い名前でもはみ出さないように */
+    }
+    .popup-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+    .popup-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1.3;
+    }
+    .popup-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #667;
+      line-height: 1.5;
+      background: #f4f4f7;
+      border-radius: 8px;
+      padding: 5px 9px;
+    }
+
+    /* ===== ダークモード ===== */
+    @media (prefers-color-scheme: dark) {
+      #map {
+        background: #1A1E2C;
+      }
+      .floating {
+        background: rgba(42, 47, 66, 0.92);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45),
+                    0 0 0 0.5px rgba(255, 255, 255, 0.06);
+      }
+      .floating:active {
+        background: rgba(58, 63, 85, 0.95);
+      }
+      #backBtn,
+      #title-pill,
+      .zoom-btn {
+        color: #E8E6E3;
+      }
+      .zoom-btn:active { background: rgba(255, 255, 255, 0.08); }
+      .zoom-divider { background: rgba(255, 255, 255, 0.15); }
+      #followBtn {
+        color: #8AB4F8;
+      }
+      #followBtn.active {
+        background: #8AB4F8;
+        color: #1A1E2C;
+      }
+      #osmCredit {
+        color: #BBB;
+        background: rgba(26, 30, 44, 0.7);
+      }
+      .attrLabel {
+        text-shadow:
+          -1px -1px 0 #1A1E2C,  1px -1px 0 #1A1E2C,
+          -1px  1px 0 #1A1E2C,  1px  1px 0 #1A1E2C;
+      }
+      /* ポップアップのカードは、読みやすさ優先で白のまま */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 戻るボタン（左上） -->
+  <button id="backBtn" class="floating" onclick="location.href='hyousi2.html'" aria-label="戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  </button>
+
+  <!-- タイトルの帯 -->
+  <div id="title-pill" class="floating">
+    <span class="dot"></span>
+    <span>ディズニーランド</span>
+  </div>
+
+  <!-- 地図 -->
+  <div id="map"></div>
+
+  <!-- 現在地追従＋コンパスのボタン（ズームボタンの上） -->
+  <button id="followBtn" class="floating" aria-label="現在地に追従">追従</button>
+
+  <!-- ズームボタン（右下） -->
+  <div id="zoom-ctrl" class="floating">
+    <button class="zoom-btn" onclick="zoomIn()" aria-label="拡大">+</button>
+    <div class="zoom-divider"></div>
+    <button class="zoom-btn" onclick="zoomOut()" aria-label="縮小">−</button>
+  </div>
+
+  <!-- OSMデータを使うときに必要なクレジット表記 -->
+  <div id="osmCredit">
+    © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>
+  </div>
+
+  <!-- markers.js（データ）と script101.js（マーカーとポップアップの処理） -->
+  <script src="markers.js"></script>
+  <script src="script101.js"></script>
+
+  <script>
+    // ==================================================
+    // 0. 設定
+    //    数字や色を変えたいときは、まずここを見る
+    // ==================================================
+    const MAP_ID = "1ebd012bef2a7f4b5b933b70";   // Cloud Console の「マップ管理」で作ったID
+
+    const ZOOM = {
+      initial:  16.5,   // 最初のズーム（すぐ fitPark でパーク全体に合わせ直す）
+      max:      19,     // これ以上は拡大できない
+      labelMin: 17      // アトラクション名を出し始めるズーム
+    };
+
+    // 通路の線の太さ（ズームごと）
+    // 大きいズームから順に並べる。最後は zoom: 0（それより引いたとき）
+    const WALK_WIDTH = [
+      { zoom: 19, px: 8 },
+      { zoom: 18, px: 5 },
+      { zoom: 17, px: 3 },
+      { zoom: 0,  px: 2 }
+    ];
+
+    // アトラクション名の文字
+    const LABEL_FONT_SIZE = 12;   // 文字の大きさ（px）
+    const LABEL_GAP = 4;          // 文字と文字のあいだに最低限空けるすき間（px）
+
+    // ライト／ダークの色（Cloud Console のスタイルの背景色と合わせる）
+    const THEME_LIGHT = {
+      mask:  "#FBF3E4",   // パークの外を隠す色
+      walk:  "#FFFFFF",   // 通路
+      label: "#5A4632"    // アトラクション名
+    };
+    const THEME_DARK = {
+      mask:  "#1A1E2C",
+      walk:  "#E8D9B5",
+      label: "#F2E6CC"
+    };
+
+    // 端末の設定に合わせて、使う色のセットを1回だけ選ぶ
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const THEME = isDark ? THEME_DARK : THEME_LIGHT;
+
+    // ズームボタンで1回押したときに変わる量
+    const ZOOM_STEP = 0.5;
+
+    // ズームボタンから地図を操作するために、作った地図をここに入れておく
+    let mapRef = null;
+
+    function initMap() {
+
+      // ==================================================
+      // 1. パークの形
+      //    パークの外周を点でたどったもの（[経度, 緯度]）
+      // ==================================================
+      const holeCoords = [
+        [139.8780422, 35.6298653],
+        [139.8774042, 35.6312691],
+        [139.8770931, 35.6318761],
+        [139.877118,  35.6341748],
+        [139.8777946, 35.6355122],
+        [139.8795214, 35.6361817],
+        [139.8811688, 35.6357622],
+        [139.88224,   35.6353588],
+        [139.8828256, 35.6351491],
+        [139.8838088, 35.6347547],
+        [139.8859195, 35.6330194],
+        [139.886249,  35.6320171],
+        [139.8850008, 35.6312703],
+        [139.884315,  35.6306529],
+        [139.8834162, 35.6303557],
+        [139.8826715, 35.6303006],
+        [139.8806598, 35.6297032],
+        [139.880534,  35.6293023],
+        [139.8780422, 35.6298653]
+      ];
+
+      // ==================================================
+      // 2. パークの上下左右の端を求める
+      //    5. でパーク全体を画面に収めるときに使う
+      // ==================================================
+      let west  = 180;   // 左端：最初はありえないほど右
+      let east  = -180;  // 右端：最初はありえないほど左
+      let south = 90;    // 下端：最初はありえないほど上
+      let north = -90;   // 上端：最初はありえないほど下
+
+      let i = 0;                            // 変数：今見ている点の番号
+      while (i < holeCoords.length) {       // 条件：全部の点を見るまで
+        const lng = holeCoords[i][0];       // 経度（左右）
+        const lat = holeCoords[i][1];       // 緯度（上下）
+
+        if (lng < west)  { west  = lng; }   // もっと左なら更新
+        if (lng > east)  { east  = lng; }   // もっと右なら更新
+        if (lat < south) { south = lat; }   // もっと下なら更新
+        if (lat > north) { north = lat; }   // もっと上なら更新
+
+        i = i + 1;                          // 変化量：次の点へ
+      }
+
+      // ==================================================
+      // 3. 地図の範囲と向きを決める
+      // ==================================================
+      const center = { lat: 35.6326, lng: 139.8806 };
+
+      const outerBounds = {
+        north: 35.637544,
+        south: 35.627657,
+        east:  139.893391,
+        west:  139.868139
+      };
+
+      // マスク用の大きい四角（outerBoundsより約5km外側まで広げる）
+      const maskBounds = {
+        north: outerBounds.north + 0.05,
+        south: outerBounds.south - 0.05,
+        east:  outerBounds.east  + 0.05,
+        west:  outerBounds.west  - 0.05
+      };
+
+      // 入口が画面の一番下に来る向きを計算する
+      //   「入口 → シンデレラ城」の方向が画面の上になるように回す
+      const ENTRANCE = { lat: 35.6356, lng: 139.8789 };   // メインエントランス付近（だいたい）
+      const CASTLE   = { lat: 35.6325, lng: 139.8806 };   // シンデレラ城付近（だいたい）
+
+      // 2点の方角を計算する（北=0°、東=90°、南=180°、西=270°）
+      function bearing(from, to) {
+        const toRad = Math.PI / 180;
+        const lat1 = from.lat * toRad;
+        const lat2 = to.lat * toRad;
+        const dLng = (to.lng - from.lng) * toRad;
+
+        const y = Math.sin(dLng) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) -
+                  Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+
+        const deg = Math.atan2(y, x) / toRad;   // -180〜180 の角度
+        return (deg + 360) % 360;                // 0〜360 にそろえる
+      }
+
+      const DEFAULT_HEADING = bearing(ENTRANCE, CASTLE);   // だいたい156°くらいになる
+
+      // ==================================================
+      // 4. 地図を作る
+      // ==================================================
+      const map = new google.maps.Map(document.getElementById("map"), {
+        mapId: MAP_ID,                          // これがないと回転できない
+        colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,   // スマホのダークモード設定に合わせる
+        zoom: ZOOM.initial,
+        center: center,
+        heading: DEFAULT_HEADING,
+        tilt: 0,                                // 斜めにしない
+        restriction: {
+          latLngBounds: outerBounds,              // 動かせる範囲（3. で決めた四角）
+          strictBounds: false
+        },
+        maxZoom: ZOOM.max,
+        isFractionalZoomEnabled: true,
+        clickableIcons: false,
+        disableDefaultUI: true
+        // 地図の色・ラベル非表示は Cloud Console のマップスタイル（disney-style / disney-style dark）で設定
+      });
+
+      mapRef = map;
+      initializeMarkers(map);
+
+      // ==================================================
+      // 5. パーク全体を画面に収める
+      // ==================================================
+      const parkBounds = { north: north, south: south, east: east, west: west };
+
+      function fitPark() {
+        map.setOptions({ minZoom: null });            // 一旦ズーム制限を外す
+        map.fitBounds(parkBounds, 20);                // パークが収まるズームに合わせる（余白20px）
+        google.maps.event.addListenerOnce(map, "idle", function () {
+          map.setOptions({ minZoom: map.getZoom() }); // そのズームより引けないようにする
+        });
+      }
+
+      fitPark();                                      // 最初に1回
+      window.addEventListener("resize", fitPark);     // 画面サイズや倍率が変わったらもう1回
+
+      // ==================================================
+      // 6. パークの外を隠す
+      //    大きな四角からパークの形をくり抜いた図形を、背景と同じ色で塗る
+      // ==================================================
+      const maskGeoJson = {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                // 1つ目の配列：大外の四角形（反時計回り：左上→左下→右下→右上→左上）
+                [
+                  [maskBounds.west, maskBounds.north],
+                  [maskBounds.west, maskBounds.south],
+                  [maskBounds.east, maskBounds.south],
+                  [maskBounds.east, maskBounds.north],
+                  [maskBounds.west, maskBounds.north]
+                ],
+
+                // 2つ目の配列：くり抜く部分（ディズニーの18点、時計回り）
+                holeCoords
+              ]
+            }
+          }
+        ]
+      };
+
+      // 地図にGeoJSONデータを読み込ませる
+      map.data.addGeoJson(maskGeoJson);
+
+      // マスクの色は、地図の背景色と同じにする（境目を目立たせない）
+      map.data.setStyle({
+        fillColor: THEME.mask,
+        fillOpacity: 1.0,
+        strokeColor: THEME.mask,
+        strokeWeight: 0,
+        clickable: false,
+        zIndex: 10                          // 通路より上に重ねる
+      });
+
+      // 開いたままダークモードを切り替えたらリロードする
+      // （colorSchemeは地図を作るときにしか決められないため）
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+        location.reload();
+      });
+
+      // ==================================================
+      // 7. 通路を描く（export.geojson）
+      //    Googleの地図はズーム17以下で通路が潰れるので、
+      //    自分で持っているデータで、どのズームでも同じ細かさで描く
+      // ==================================================
+      const walkLayer = new google.maps.Data({ map: map });   // マスクとは別のレイヤー
+      walkLayer.loadGeoJson("export.geojson");
+
+      // 今のズームに合う線の太さを、WALK_WIDTH の表から探す
+      function walkLineWeight() {
+        const z = map.getZoom();
+        let i = 0;                             // 表の何行目を見ているか
+        while (i < WALK_WIDTH.length) {        // 表の最後の行まで見る
+          if (z >= WALK_WIDTH[i].zoom) { return WALK_WIDTH[i].px; }   // 最初に当てはまった行の太さ
+          i = i + 1;                           // 次の行へ
+        }
+        return WALK_WIDTH[WALK_WIDTH.length - 1].px;   // 念のため（表の最後の太さ）
+      }
+
+      function styleWalkways() {
+        const weight = walkLineWeight();
+
+        walkLayer.setStyle(function (feature) {
+          const type = feature.getGeometry().getType();
+
+          // 広場などの「面」は塗りつぶす
+          if (type === "Polygon" || type === "MultiPolygon") {
+            return {
+              fillColor: THEME.walk,
+              fillOpacity: 1.0,
+              strokeWeight: 0,
+              clickable: false,
+              zIndex: 1
+            };
+          }
+
+          // 歩道などの「線」は太さを付けて描く
+          return {
+            strokeColor: THEME.walk,
+            strokeOpacity: 1.0,
+            strokeWeight: weight,
+            clickable: false,
+            zIndex: 2
+          };
+        });
+      }
+
+      styleWalkways();                                      // 最初に1回
+      map.addListener("zoom_changed", styleWalkways);       // ズームが変わるたびに太さを更新
+
+      // ==================================================
+      // 8. アトラクション名を表示する（attractions.geojson）
+      //    マーカーの文字として置くので、通路やマスクより上に表示される
+      //    重なった文字は自動で隠す／英語だけの名前は出さない
+      // ==================================================
+      const attrLabels = [];        // { marker, latLng, width } をためておく箱
+
+      // ある点がパークの形（holeCoords）の内側にあるかを調べる
+      // 点から右に線をのばして、パークの辺と何回交わるかを数える（奇数なら内側）
+      function isInsideHole(lat, lng) {
+        let inside = false;
+        let i = 0;                             // 変数：今見ている辺の始点
+        let j = holeCoords.length - 1;         // 変数：その1つ前の点
+        while (i < holeCoords.length) {        // 条件：全部の辺を見るまで
+          const xi = holeCoords[i][0], yi = holeCoords[i][1];
+          const xj = holeCoords[j][0], yj = holeCoords[j][1];
+
+          const crosses = ((yi > lat) !== (yj > lat)) &&
+                          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+          if (crosses) { inside = !inside; }
+
+          j = i;                               // 変化量：次の辺へ
+          i = i + 1;
+        }
+        return inside;
+      }
+
+      // 名前に日本語（ひらがな・カタカナ・漢字）が入っているか
+      function hasJapanese(text) {
+        return /[぀-ヿ一-鿿]/.test(text);
+      }
+
+      // 文字の横幅をざっくり計算する（日本語は1文字=フォントサイズ、英数字はその6割）
+      function estimateTextWidth(text) {
+        let width = 0;
+        let c = 0;                             // 変数：今見ている文字の番号
+        while (c < text.length) {              // 条件：全部の文字を見るまで
+          if (text.charCodeAt(c) > 255) {
+            width = width + LABEL_FONT_SIZE;
+          } else {
+            width = width + LABEL_FONT_SIZE * 0.6;
+          }
+          c = c + 1;                           // 変化量：次の文字へ
+        }
+        return width;
+      }
+
+      // 緯度経度 → 画面上の位置（px）に変換するための道具
+      // （OverlayView を空っぽのまま地図にのせると、変換用の projection が使えるようになる）
+      const projHelper = new google.maps.OverlayView();
+      projHelper.onAdd = function () {};
+      projHelper.draw = function () {};
+      projHelper.onRemove = function () {};
+      projHelper.setMap(map);
+
+      // 2つの四角が重なっているか
+      function boxesOverlap(a, b) {
+        return a.left < b.right && b.left < a.right &&
+               a.top < b.bottom && b.top < a.bottom;
+      }
+
+      // 文字を出すか隠すかを決める
+      // 先に置いた文字と重なる文字は隠す（データの先頭に近いものが優先）
+      function updateLabels() {
+        const projection = projHelper.getProjection();
+        const zoomOk = map.getZoom() >= ZOOM.labelMin;
+
+        const placedBoxes = [];                // もう表示すると決めた文字の四角
+        let k = 0;                             // 変数：今見ている文字の番号
+        while (k < attrLabels.length) {        // 条件：全部の文字を見るまで
+          const item = attrLabels[k];
+          k = k + 1;                           // 変化量：次の文字へ
+
+          if (!zoomOk || !projection) {        // ズームが足りない or まだ準備できていない
+            item.marker.setVisible(false);
+            continue;
+          }
+
+          const p = projection.fromLatLngToContainerPixel(item.latLng);
+          const box = {
+            left:   p.x - item.width / 2 - LABEL_GAP,
+            right:  p.x + item.width / 2 + LABEL_GAP,
+            top:    p.y - LABEL_FONT_SIZE / 2 - LABEL_GAP,
+            bottom: p.y + LABEL_FONT_SIZE / 2 + LABEL_GAP
+          };
+
+          // すでに置いた文字と重なるか調べる
+          let overlapped = false;
+          let b = 0;
+          while (b < placedBoxes.length && !overlapped) {
+            if (boxesOverlap(box, placedBoxes[b])) { overlapped = true; }
+            b = b + 1;
+          }
+
+          if (overlapped) {
+            item.marker.setVisible(false);     // 重なるので隠す
+          } else {
+            item.marker.setVisible(true);      // 重ならないので出す
+            placedBoxes.push(box);
+          }
+        }
+      }
+
+      fetch("attractions.geojson")
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          const usedNames = {};                // 同じ名前を2回出さないための記録
+          const features = data.features;
+
+          let n = 0;                           // 変数：今見ているデータの番号
+          while (n < features.length) {        // 条件：全部のデータを見るまで
+            const f = features[n];
+            n = n + 1;                         // 変化量：次のデータへ（continueしても進むように先に増やす）
+
+            if (f.geometry.type !== "Point") { continue; }   // 点以外は使わない
+
+            const props = f.properties;
+            let name = props["name:ja"];       // 日本語名があればそれを使う
+            if (!name) { name = props.name; }
+            if (!name) { continue; }           // 名前がなければ飛ばす
+            if (!hasJapanese(name)) { continue; }            // 英語だけの名前は飛ばす
+            if (usedNames[name]) { continue; } // もう出した名前なら飛ばす
+
+            const lng = f.geometry.coordinates[0];
+            const lat = f.geometry.coordinates[1];
+            if (!isInsideHole(lat, lng)) { continue; }       // パークの外なら飛ばす
+
+            usedNames[name] = true;
+
+            const latLng = new google.maps.LatLng(lat, lng);
+            const m = new google.maps.Marker({
+              map: map,
+              position: latLng,
+              visible: false,                  // 最初は隠しておいて、updateLabels で決める
+              clickable: false,
+              zIndex: 1,                       // トイレなどのアイコンより下にする
+              icon: {                          // アイコンは見えない点にして、文字だけ出す
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 0
+              },
+              label: {
+                text: name,
+                color: THEME.label,
+                fontSize: LABEL_FONT_SIZE + "px",
+                fontWeight: "bold",
+                className: "attrLabel"
+              }
+            });
+
+            attrLabels.push({ marker: m, latLng: latLng, width: estimateTextWidth(name) });
+          }
+
+          updateLabels();                      // 読み込み終わったら1回チェック
+        })
+        .catch(function (err) {
+          console.warn("attractions.geojson が読み込めませんでした:", err);
+        });
+
+      // 地図の動きが止まるたびに（ズーム・移動・回転のあと）重なりを計算し直す
+      map.addListener("idle", updateLabels);
+
+
+      // ==================================================
+      // 9. 現在地を表示する（青い点）
+      // ==================================================
+      let myPos = null;          // 今の自分の位置（まだ分からないのでnull）
+      let followMode = false;    // true：追従中 / false：固定
+
+      const myMarker = new google.maps.Marker({
+        map: map,
+        position: center,
+        visible: false,          // 位置が取れるまで隠しておく
+        clickable: false,
+        zIndex: 999,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: "#1a73e8",
+          fillOpacity: 1,
+          strokeColor: "#FFFFFF",
+          strokeWeight: 3
+        }
+      });
+
+      // 位置がパークの範囲内かどうか
+      function isInPark(pos) {
+        return pos.lat <= outerBounds.north && pos.lat >= outerBounds.south &&
+               pos.lng <= outerBounds.east  && pos.lng >= outerBounds.west;
+      }
+
+      // 位置が取れるたびに呼ばれる
+      function onPosition(p) {
+        myPos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        myMarker.setPosition(myPos);
+        myMarker.setVisible(true);
+
+        if (followMode) {
+          if (isInPark(myPos)) {
+            map.panTo(myPos);                   // 自分の位置を画面の真ん中へ
+          } else {
+            stopFollow();                       // パークの外にいるなら追従をやめる
+            console.log("パークの外にいるので追従をやめました");
+          }
+        }
+      }
+
+      function onPositionError(err) {
+        console.warn("位置情報が取れませんでした:", err.message);
+      }
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(onPosition, onPositionError, {
+          enableHighAccuracy: true,   // GPSを使って精度を上げる
+          maximumAge: 1000,           // 1秒以内の古い位置ならそのまま使う
+          timeout: 10000
+        });
+      }
+
+      // ==================================================
+      // 10. コンパスで地図を回す
+      // ==================================================
+      let lastHeading = DEFAULT_HEADING;
+
+      // Androidは「北基準の向き」が取れるイベントがあればそっちを使う
+      let orientationEvent = "deviceorientation";
+      if ("ondeviceorientationabsolute" in window) {
+        orientationEvent = "deviceorientationabsolute";
+      }
+
+      function onOrientation(e) {
+        let h = null;
+
+        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+          h = e.webkitCompassHeading;           // iPhone：そのまま北からの角度
+        } else if (e.absolute && e.alpha !== null) {
+          h = 360 - e.alpha;                    // Android：alphaは反時計回りなので反転
+        }
+        if (h === null) { return; }             // 向きが取れない端末（PCなど）
+
+        // スマホを横向きにしているときの補正
+        let screenAngle = 0;
+        if (screen.orientation) { screenAngle = screen.orientation.angle; }
+        h = (h + screenAngle) % 360;
+
+        // 細かいブレで地図がガタガタしないように、3度以上変わったときだけ回す
+        let diff = Math.abs(h - lastHeading);
+        if (diff > 180) { diff = 360 - diff; }  // 359度と1度の差は2度として扱う
+        if (diff < 3) { return; }
+
+        lastHeading = h;
+        map.setHeading(h);
+      }
+
+      // ==================================================
+      // 11. 追従ボタン
+      // ==================================================
+      const followBtn = document.getElementById("followBtn");
+
+      async function startFollow() {
+        // iPhoneはボタンを押したタイミングで許可をもらう必要がある
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
+          try {
+            const result = await DeviceOrientationEvent.requestPermission();
+            if (result !== "granted") {
+              console.warn("コンパスの許可がもらえませんでした（位置の追従だけ動きます）");
+            }
+          } catch (err) {
+            console.warn("コンパスの許可エラー:", err);
+          }
+        }
+
+        window.addEventListener(orientationEvent, onOrientation);
+        followMode = true;
+        followBtn.classList.add("active");
+        followBtn.textContent = "固定";
+
+        if (myPos !== null && isInPark(myPos)) {
+          map.panTo(myPos);
+        }
+      }
+
+      function stopFollow() {
+        window.removeEventListener(orientationEvent, onOrientation);
+        followMode = false;
+        followBtn.classList.remove("active");
+        followBtn.textContent = "追従";
+
+        lastHeading = DEFAULT_HEADING;
+        map.setHeading(DEFAULT_HEADING);        // 元の向きに戻す
+      }
+
+      followBtn.addEventListener("click", function () {
+        if (followMode) {
+          stopFollow();
+        } else {
+          startFollow();
+        }
+      });
+
+      // 指で地図を動かしたら追従をやめる（勝手に戻されるとイライラするので）
+      map.addListener("dragstart", function () {
+        if (followMode) { stopFollow(); }
+      });
+    }
+
+    // ==================================================
+    // 12. ズームボタン（＋／−）
+    // ==================================================
+    function zoomIn()  { if (mapRef) { mapRef.setZoom(mapRef.getZoom() + ZOOM_STEP); } }
+    function zoomOut() { if (mapRef) { mapRef.setZoom(mapRef.getZoom() - ZOOM_STEP); } }
+
+  </script>
+
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFBM-cOpL2SzVEcRfchjWfD3T09sDZW6E&callback=initMap"></script>
+</body>
+</html>
